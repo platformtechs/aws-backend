@@ -1,7 +1,7 @@
 import express from 'express';
 import { createConnect } from './config/db';
 import middlewareConfig from './config/middleware';
-import { UserRoutes } from './modules';
+import { UserRoutes,AwsRoutes } from './modules';
 
 const app = express();
 

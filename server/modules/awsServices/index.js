@@ -1,4 +1,4 @@
 
-import UserRoutes from './routes';
+import AwsRoutes from './routes';
 
-export { UserRoutes };
+export { AwsRoutes };
