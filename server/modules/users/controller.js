@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import User from './model';
 
 export const createUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, accesskey, accessid } = req.body;
   console.log('create');
   console.log(req.body);
 
@@ -21,6 +21,8 @@ export const createUser = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       email,
       password: hash,
+      accesskey,
+      accessid,
     });
     try {
       const data = await newUser.save();
@@ -109,9 +111,10 @@ export const deleteUser = async (req, res) => {
 
 export const getUser = async (req, res) => {
   try {
-    const userId = mongoose.Types.ObjectId(req.params.id);
-    console.log('id', userId);
-    return res.status(201).json({ error: false, user: await User.findById({ _id: userId }) });
+    // const userId = mongoose.Types.ObjectId(req.params.id);
+    // console.log('id', userId);
+    // return res.status(201).json({ error: false, user: await User.findById({ _id: userId }) });
+    return res.status(201).json({ error: false, user: await User.findOne({ email: req.body.email }) });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }

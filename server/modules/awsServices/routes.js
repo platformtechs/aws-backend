@@ -6,7 +6,7 @@ import * as AwsController from './controller';
 const routes = new Router();
 
 routes.post('/aws/create', AwsController.createInstance);
-routes.post('/aws/start', AwsController.startandstopInstance);
-routes.post('/aws/stop', AwsController.startandstopInstance);
-routes.get('/aws/reboot', AwsController.rebootInstance);
+// routes.post('/aws/start', AwsController.startandstopInstance);
+// routes.post('/aws/stop', AwsController.startandstopInstance);
+// routes.post('/aws/reboot', AwsController.rebootInstance);
 export default routes;
