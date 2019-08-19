@@ -7,7 +7,7 @@ const request = require('supertest');
 const app = require('../../server/app');
 const { createConnect, close } = require('../../server/config/db');
 
-describe('POST /student/create', () => {
+describe('POST /user/create', () => {
   before(() => {
     createConnect();
   });
@@ -17,10 +17,10 @@ describe('POST /student/create', () => {
     close();
   });
 
-  it('OK, creating a student works', () => {
-    request(app).post('/api/student/create')
+  it('OK, creating a user works', () => {
+    request(app).post('/api/user/create')
       .send({
-        phone: '9631560285',
+        email: 'xxyyww@gmail.com',
         password: '12345',
       })
       .then((res) => {

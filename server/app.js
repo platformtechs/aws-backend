@@ -1,7 +1,7 @@
 import express from 'express';
 import { createConnect } from './config/db';
 import middlewareConfig from './config/middleware';
-import { StudentRoutes, TeacherRoutes, RequirementRoutes } from './modules';
+import { UserRoutes } from './modules';
 
 const app = express();
 
@@ -11,6 +11,6 @@ createConnect();
 /*= ===Middleware config===*/
 middlewareConfig(app);
 
-app.use('/api', [StudentRoutes, TeacherRoutes, RequirementRoutes]);
+app.use('/api', [UserRoutes]);
 
 module.exports = app;

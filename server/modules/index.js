@@ -1,3 +1,3 @@
-export * from './students';
-export * from './teachers';
-export * from './reuirements';
+// eslint-disable-next-line import/no-unresolved
+export * from './users';
+
