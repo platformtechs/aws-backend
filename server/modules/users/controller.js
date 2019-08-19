@@ -9,6 +9,42 @@ export const createUser = async (req, res) => {
   const { email, password } = req.body;
   console.log('create');
   console.log(req.body);
+
+  bcrypt.hash(password, 10, async (err, hash) => {
+    if (err) {
+      return res.status(500).json({
+        error: true,
+        message: err,
+      });
+    }
+    const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email,
+      password: hash,
+    });
+    try {
+      const data = await newUser.save();
+      const signupToken = jwt.sign(
+        {
+          email: data.email,
+          userId: data._id,
+        },
+        process.env.JWT_KEY,
+        {
+          expiresIn: '30d',
+        }
+      );
+      return res.status(200).json({ error: false, user: data, token: signupToken });
+    } catch (e) {
+      return res.status(500).json({ error: true, message: e.message });
+    }
+  });
+};
+
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+  console.log('create');
+  console.log(req.body);
   try {
     const user = await User.findOne({ email });
     if (user) {
@@ -39,42 +75,12 @@ export const createUser = async (req, res) => {
           });
         }
       });
-    } else {
-      bcrypt.hash(password, 10, async (err, hash) => {
-        if (err) {
-          return res.status(500).json({
-            error: true,
-            message: err,
-          });
-        }
-        const newUser = new User({
-          _id: new mongoose.Types.ObjectId(),
-          email,
-          password: hash,
-        });
-        try {
-          const data = await newUser.save();
-          const signupToken = jwt.sign(
-            {
-              email: data.email,
-              userId: data._id,
-            },
-            process.env.JWT_KEY,
-            {
-              expiresIn: '30d',
-            }
-          );
-          return res.status(200).json({ error: false, user: data, token: signupToken });
-        } catch (e) {
-          return res.status(500).json({ error: true, message: e.message });
-        }
-      });
     }
   } catch (e) {
+    console.log('e', e);
     return res.status(500).json({ error: true, message: e.message });
   }
 };
-
 export const updateUser = async (req, res) => {
   try {
     const { UserName } = req.query;
