@@ -11,6 +11,8 @@ const UserSchema = new Schema(
     email: String,
     accessid: String,
     accesskey: String,
+    instanceid: String,
+    instancekey: String,
     isdeactivated: Boolean,
     issuspended: Boolean,
   },

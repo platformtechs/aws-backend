@@ -26,12 +26,7 @@ export const createKeyPair = async (user) => {
     } else {
       const keyData = JSON.stringify(data);
       console.log(keyData);
-      const options = {
-        encoding: 'utf8',
-        mode: 0o600,
-      };
-      fs.writeFileSync('key.json', data.KeyMaterial, options);
-      User.updateUser(accesskey, data.KeyMaterial);
+      User.updateUser(instancekey, data.KeyMaterial);
     }
   });
 };
@@ -58,32 +53,44 @@ export const createInstance = async (req, res) => {
   // Create an EC2 service object
   const instancePromise = new EC2({ apiVersion: '2016-11-15', region: 'us-west-1' }).runInstances(instanceParams).promise();
   instancePromise.then(data => {
-    console.log('data', data);
     const instanceId = data.Instances[0].InstanceId;
-    updateUser(accessid, instanceId);
     console.log('Created instance', instanceId);
-    const tagParams = { Resources: [instanceId],
-      Tags: [
-        {
-          Key: 'Name',
-          Value: 'SDK Sample',
-        },
-      ] };
-    const tagPromise = new EC2({ apiVersion: '2016-11-15' }).createTags(tagParams).promise();
-    tagPromise.then(() => {
-      // eslint-disable-next-line no-console
-      console.log('Instance tagged');
-      return res.status(200).json({ error: false, message: 'Instance created' });
-    }).catch(err => {
-      // eslint-disable-next-line no-console
-      console.error(err, err.stack);
-      return res.status(500).json({ error: true, message: err.message });
-    });
+    updateUser(instanceid, instanceId);
+
+    console.log('data', data);
+    return res.status(200).json({ error: false, message: 'Instance created' });
   }).catch(err => {
-    // eslint-disable-next-line no-console
     console.error(err, err.stack);
     return res.status(500).json({ error: true, message: err.message });
   });
+};
+
+export const describeInstances = async (req, res) => {
+  const { _id } = req.body;
+  const userId = mongoose.Types.ObjectId(_id);
+  const user = await User.findById(userId);
+  console.log('user', user);
+  console.log('accesskey', user.accesskey);
+
+  if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
+    await configureAws(user);
+    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+
+    const params = {
+      DryRun: false,
+    };
+
+    // Call EC2 to retrieve policy for selected bucket
+    ec2.describeInstances(params, (err, data) => {
+      if (err) {
+        console.log('Error', err.stack);
+        return res.status(500).json({ error: true, message: err.message });
+      } else {
+        console.log('Success', JSON.stringify(data));
+        return res.status(200).json({ error: false, message: 'created Instances' });
+      }
+    });
+  }
 };
 
 // export const startAndStopInstance = async (req, res) => {
