@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
 import mongoose, { Schema } from 'mongoose';
+import bcrypt from 'bcrypt';
+import User from './model';
 
 const UserSchema = new Schema(
   {
@@ -28,5 +30,21 @@ UserSchema.statics.updateUser = async function (id, args) {
     console.log('err', e);
   }
 };
+UserSchema.statics.createUser = async function (user) {
+  const { email, password, accesskey, accessid } = user;
 
+  bcrypt.hash(password, 10, async (e, hash) => {
+    if (e) {
+      console.log('err', e);
+    }
+    const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email,
+      password: hash,
+      accesskey,
+      accessid,
+    });
+    await newUser.save();
+  });
+};
 export default mongoose.model('User', UserSchema);
