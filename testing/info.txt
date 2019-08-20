@@ -1,0 +1,16 @@
+# aws config
+## in your controller backed by database
+
+### this code be replaced by  (config)
+AWS.config.update({region: 'us-east-1'});
+let credentials = new AWS.SharedIniFileCredentials({profile: 'amplify'});
+AWS.config.credentials = credentials;
+
+### this code (replace-config)
+AWS.config= new AWS.Config({
+    accessKeyId: user.accessid, secretAccessKey: user.accesskey, region: 'us-west-1',
+  });
+
+# sequence to create EC2 instance.
+1. create keypair (their operations)
+2. create instance. (their operations)
