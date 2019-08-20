@@ -1,3 +1,4 @@
+/* eslint-disable no-else-return */
 
 /* eslint-disable no-shadow */
 /* eslint-disable no-undef */
@@ -6,23 +7,50 @@ import mongoose from 'mongoose';
 
 import User from '../users/model';
 
+// eslint-disable-next-line no-return-assign
 const configureAws = async (user) =>
-  AWS.config= new AWS.Config({
+  AWS.config = new AWS.Config({
     accessKeyId: user.accessid, secretAccessKey: user.accesskey, region: 'us-west-1',
   });
+
+export const createKeyPair = async (user) => {
+  const params = {
+    KeyName: user.email,
+  };
+
+  // Create the key pair
+  new EC2({ apiVersion: '2016-11-15', region: 'us-west-1' }).createKey(params, (err, data) => {
+    if (err) {
+      console.log('Error', err);
+      return res.status(500).json({ error: true, message: err.message });
+    } else {
+      const keyData = JSON.stringify(data);
+      console.log(keyData);
+      const options = {
+        encoding: 'utf8',
+        mode: 0o600,
+      };
+      fs.writeFileSync('key.json', data.KeyMaterial, options);
+      User.updateUser(accesskey, data.KeyMaterial);
+    }
+  });
+};
 
 export const createInstance = async (req, res) => {
   const { _id } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);
-  console.log("user", user);
-  console.log("accesskey", user.accesskey);
+  console.log('user', user);
+  console.log('accesskey', user.accesskey);
   await configureAws(user);
+  await User.createUser(user);
+  await createKeyPair(user);
+
   // AMI is amzn-ami-2011.09.1.x86_64-ebs
   const instanceParams = {
     ImageId: 'ami-0d4027d2cdbca669d',
     InstanceType: 't2.micro',
-    KeyName: 'KEY_PAIR_NAME',
+    KeyName: user.email,
     MinCount: 1,
     MaxCount: 1,
   };
@@ -32,6 +60,7 @@ export const createInstance = async (req, res) => {
   instancePromise.then(data => {
     console.log('data', data);
     const instanceId = data.Instances[0].InstanceId;
+    updateUser(accessid, instanceId);
     console.log('Created instance', instanceId);
     const tagParams = { Resources: [instanceId],
       Tags: [
