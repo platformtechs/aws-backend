@@ -9,6 +9,8 @@ const UserSchema = new Schema(
     password: String,
     username: String,
     usertype: String,
+    createdby: String,
+    awsAdminId: String,
     address: String,
     email: String,
     accessid: String,

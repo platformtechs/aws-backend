@@ -32,6 +32,17 @@ User attributes:
 Create User:
 POST  ROOT_URL/api/user/create
 
+HEADERS
+Content-Type:application/json
+BODY
+ {
+        "_id": "5d5c493ee0c08412d82055ec",
+        "email": "tanishaaggarwal0225@gmail.com",
+        "password": "1234"
+        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+        "accessid": "AKIAX6MJJ3MUPZYFAADA",
+ }
+
 Response
 200
 HEADERS
@@ -50,6 +61,15 @@ BODY
         "__v": 0
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbDAyMjVAZ21haWwuY29tIiwidXNlcklkIjoiNWQ1YzQ5M2VlMGMwODQxMmQ4MjA1NWVjIiwiaWF0IjoxNTY2MzI5MTUwLCJleHAiOjE1Njg5MjExNTB9.qAUj8Pq9V4huItcVsNhikgfh2nFM7886KZ5Nc8vCbdY"
+}
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "failed"
 }
 
 
@@ -92,7 +112,8 @@ HEADERS
 Content-Type:application/json
 BODY
 {
-  "error": "error.unauthorized"
+    "error": true,
+  "message": "error.unauthorized"
 }
 
 Get User:
@@ -128,8 +149,10 @@ HEADERS
 Content-Type:application/json
 BODY
 {
-  "error": "error.unauthorized"
+    "error": true,
+    "message": "failed"
 }
+
 
 Update User:
 POST  ROOT_URL/api/user/id
@@ -144,8 +167,9 @@ BODY
 {
   "email": "pandurangpatil@email.com"
 }
+
 Response
-201
+201201
 HEADERS
 Content-Type:application/json
 BODY
@@ -161,7 +185,8 @@ HEADERS
 Content-Type:application/json
 BODY
 {
-  "error": "error.unauthorized"
+    "error": true,
+    "message": "failed"
 }
 
 
@@ -185,18 +210,19 @@ BODY
     "message": 'User deleted'
 }
 
-
 Response
 500
 HEADERS
 Content-Type:application/json
 BODY
 {
-  "error": "error.unauthorized"
+    "error": true,
+    "message": "failed"
 }
 
+
 Login user:
-POST ROOT_URL/api/user/Login
+POST ROOT_URL/api/user/login
 
 HEADERS
 Content-Type:application/json
@@ -236,7 +262,59 @@ BODY
     "message": "Auth failed"
 }
 
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "error": "error.unauthorized"
+}
 
 
 
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbEBnbWFpbC5jb20iLCJ1c2VySWQiOiI1ZDVjZDk1YTk1YmE1NzBmOTQzYTJiYmQiLCJpYXQiOjE1NjYzNjYwNDIsImV4cCI6MTU2ODk1ODA0Mn0.ZxBwtPhpceQ3gglvEu-YWnBGMH_hwBl995Xl9uPxHHI
+
+
+Create User:
+POST  ROOT_URL/api/aws/create
+
+HEADERS
+Content-Type:application/json
+BODY
+ {
+        "_id": "5d5c493ee0c08412d82055ec",
+        "email": "tanishaaggarwal0225@gmail.com",
+        "password": "1234",
+        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+        "accessid": "AKIAX6MJJ3MUPZYFAADA",
+ }
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "user": {
+        "_id": "5d5c493ee0c08412d82055ec",
+        "email": "tanishaaggarwal0225@gmail.com",
+        "password": "$2b$10$E9l1JK2B2nPt7v6ZH5K.4OKqVEP95CIcgTutHkElnP8mGyf5RL.5W",
+        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+        "accessid": "AKIAX6MJJ3MUPZYFAADA",
+        "createdAt": "2019-08-20T19:25:50.309Z",
+        "updatedAt": "2019-08-20T19:25:50.309Z",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbDAyMjVAZ21haWwuY29tIiwidXNlcklkIjoiNWQ1YzQ5M2VlMGMwODQxMmQ4MjA1NWVjIiwiaWF0IjoxNTY2MzI5MTUwLCJleHAiOjE1Njg5MjExNTB9.qAUj8Pq9V4huItcVsNhikgfh2nFM7886KZ5Nc8vCbdY"
+}
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "failed"
+}
