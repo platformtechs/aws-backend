@@ -1,0 +1,242 @@
+API DOCUMENTATION
+
+Allowed HTTPs requests:
+POST   : To create resource
+PUT  : Update resource
+GET     : Get a resource or list of resources
+DELETE  : To delete resource
+
+Description Of Usual Server Responses:
+200 OK - the request was successful (some API calls may return 201 instead).
+201 Created - the request was successful and a resource was created.
+204 No Content - the request was successful but there is no representation to return (i.e. the response is empty).
+400 Bad Request - the request could not be understood or was missing required parameters.
+401 Unauthorized - authentication failed or user doesn't have permissions for requested operation.
+403 Forbidden - access denied.404 Not Found - resource was not found.
+405 Method Not Allowed - requested method is not supported for resource.
+
+User attributes:
+    _id: unique identifier.,
+    password: String,
+    username: String,
+    usertype: String,
+    address: String,
+    email: String,PUT
+    accessid: String,
+    accesskey: String,
+    instanceid: String,
+    instancekey: String,
+    isdeactivated: Boolean,
+    issuspended: Boolean,
+
+Create User:
+POST  ROOT_URL/api/user/create
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "user": {
+        "_id": "5d5c493ee0c08412d82055ec",
+        "email": "tanishaaggarwal0225@gmail.com",
+        "password": "$2b$10$E9l1JK2B2nPt7v6ZH5K.4OKqVEP95CIcgTutHkElnP8mGyf5RL.5W",
+        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+        "accessid": "AKIAX6MJJ3MUPZYFAADA",
+        "createdAt": "2019-08-20T19:25:50.309Z",
+        "updatedAt": "2019-08-20T19:25:50.309Z",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbDAyMjVAZ21haWwuY29tIiwidXNlcklkIjoiNWQ1YzQ5M2VlMGMwODQxMmQ4MjA1NWVjIiwiaWF0IjoxNTY2MzI5MTUwLCJleHAiOjE1Njg5MjExNTB9.qAUj8Pq9V4huItcVsNhikgfh2nFM7886KZ5Nc8vCbdY"
+}
+
+
+List All User:
+GET ROOT_URL/api/user/all
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "allUser": [
+        {
+            "_id": "5d5c301d19fead17da10a866",
+            "email": "tanishaaggarwal2502@gmail.com",
+            "password": "$2b$10$VbvFmpkJ2WP9DtX.pi2Dbex3ccad3PeRUD2pK483Ez2jhRqdiPDBS",
+            "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+            "accessid": "AKIAX6MJJ3MUPZYFAADA",
+            "createdAt": "2019-08-20T17:38:37.033Z",
+            "updatedAt": "2019-08-20T17:38:37.033Z",
+            "__v": 0
+        },
+        {
+             "_id": "5d5c30fd3c5141180a570806",
+            "email": "tanishaaggarwal0225@gmail.com",
+            "password": "$2b$10$2860oCKiACe3wz8/ouBbRuTGaaTny0kWzAQrUbm6LdJgLkmsoPtGC",
+            "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+            "accessid": "AKIAX6MJJ3MUPZYFAADA",
+            "createdAt": "2019-08-20T17:42:21.217Z",
+            "updatedAt": "2019-08-20T17:42:21.217Z",
+            "__v": 0
+        }
+    ]
+}
+
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "error": "error.unauthorized"
+}
+
+Get User:
+GET ROOT_URL/api/user
+
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "email": "tanishaaggarwal0225@gmail.com",
+}
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "_id": "5d5c30fd3c5141180a570806",
+    "email": "tanishaaggarwal0225@gmail.com",
+    "password": "$2b$10$2860oCKiACe3wz8/ouBbRuTGaaTny0kWzAQrUbm6LdJgLkmsoPtGC",
+    "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
+    "accessid": "AKIAX6MJJ3MUPZYFAADA",
+    "createdAt": "2019-08-20T17:42:21.217Z",
+    "updatedAt": "2019-08-20T17:42:21.217Z",
+    "__v": 0
+}
+
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "error": "error.unauthorized"
+}
+
+Update User:
+POST  ROOT_URL/api/user/id
+
+parameters:
+_id : unique identifier objectId (String)
+
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "email": "pandurangpatil@email.com"
+}
+Response
+201
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "message": "user updated"
+}
+
+
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "error": "error.unauthorized"
+}
+
+
+Delete User:
+POST  ROOT_URL/api/user/delete
+
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "email": "pandurangpatil@email.com"
+}
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "message": 'User deleted'
+}
+
+
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+  "error": "error.unauthorized"
+}
+
+Login user:
+POST ROOT_URL/api/user/Login
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "email": "pandurangpatil@email.com",
+    "password": "1234"
+}
+
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "message": "Auth successful",
+    "user": {
+        "_id": "5d5af7b466ae141ae5e6d0d4",
+        "email": "tanishaaggarwal2502@gmail.com",
+        "password": "$2b$10$eJQsgv4jLobDakaAW.3ite2O4fpyElxMMpTsL0WDPfuJWpX6IkDmy",
+        "createdAt": "2019-08-19T19:25:40.982Z",
+        "updatedAt": "2019-08-19T19:25:40.982Z",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbDI1MDJAZ21haWwuY29tIiwidXNlcklkIjoiNWQ1YWY3YjQ2NmFlMTQxYWU1ZTZkMGQ0IiwiaWF0IjoxNTY2MzMyOTI3LCJleHAiOjE1Njg5MjQ5Mjd9.NTKOJgumB1nkx95QO323wOsxwtZO4WSw_yimdC37Vkc"
+}
+
+Response
+401
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "Auth failed"
+}
+
+
+
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbEBnbWFpbC5jb20iLCJ1c2VySWQiOiI1ZDVjZDk1YTk1YmE1NzBmOTQzYTJiYmQiLCJpYXQiOjE1NjYzNjYwNDIsImV4cCI6MTU2ODk1ODA0Mn0.ZxBwtPhpceQ3gglvEu-YWnBGMH_hwBl995Xl9uPxHHI

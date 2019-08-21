@@ -43,39 +43,65 @@ export const createUser = async (req, res) => {
   });
 };
 
+async function hashPassword(password) {
+  const saltRounds = 10;
+
+  const hashedPassword = await new Promise((resolve, reject) => {
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+      if (err) reject(err);
+      resolve(hash);
+    });
+  });
+
+  return hashedPassword;
+}
+
 export const login = async (req, res) => {
-  const { email, password } = req.body;
-  console.log('create');
-  console.log(req.body);
+  let { email, password } = req.body;
+
+  // console.log('create');
+  // console.log(req.body);
   try {
     const user = await User.findOne({ email });
+    console.log(user);
+    // const hashedPassword = await hashPassword(password);
+
+    console.log(password, 'mypsss');
+
     if (user) {
-      bcrypt.compare(password, user.password, async (err, result) => {
-        if (err) {
+      bcrypt.compare(password, user.password, (err, result) => {
+        console.log(err);
+        console.log(result);
+        if (!result) {
+          console.log('inside');
           return res.status(401).json({
             error: true,
             message: 'Auth failed',
           });
         }
-        if (result) {
-          const loginToken = jwt.sign(
-            {
-              email: user.email,
-              userId: user._id,
-            },
-            process.env.JWT_KEY,
-            {
-              expiresIn: '30d',
-            }
-          );
+
+        const loginToken = jwt.sign(
+          {
+            email: user.email,
+            userId: user._id,
+          },
+          process.env.JWT_KEY,
+          {
+            expiresIn: '30d',
+          }
+        );
           // user.password = null;
-          return res.status(200).json({
-            error: false,
-            message: 'Auth successful',
-            user,
-            token: loginToken,
-          });
-        }
+        return res.status(200).json({
+          error: false,
+          message: 'Auth successful',
+          user,
+          token: loginToken,
+        });
+      });
+    } else {
+      return res.status(401).json({
+        error: true,
+        message: 'error',
       });
     }
   } catch (e) {
@@ -113,7 +139,7 @@ export const getUser = async (req, res) => {
   try {
     // const userId = mongoose.Types.ObjectId(req.params.id);
     // console.log('id', userId);
-    // return res.status(201).json({ error: false, user: await User.findById({ _id: userId }) });
+    // return res.status(200).json({ error: false, user: await User.findById({ _id: userId }) });
     return res.status(201).json({ error: false, user: await User.findOne({ email: req.body.email }) });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
