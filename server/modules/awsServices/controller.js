@@ -31,14 +31,24 @@ const createKeyPair = async (user) => {
 };
 
 export const createInstance = async (req, res) => {
-  const { _id } = req.body;
+  const { _id, email, password, username } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);
   console.log('user', user);
   console.log('accesskey', user.accesskey);
   await configureAws(user);
-  await User.createUser(user);
-  await createKeyPair(user);
+  const tempUser = new User({
+    _id: new mongoose.Types.ObjectId(),
+    username,
+    email,
+    password: hash,
+    accessid:user.accessid,
+    accesskey: user.accesskey,
+    usertype:"USER"
+  })
+  const newUser = await tempUser.save();
+  console.log("newUser", newUser);
+  await createKeyPair(newUser);
   // AMI is amzn-ami-2011.09.1.x86_64-ebs
   const instanceParams = {
     ImageId: 'ami-0d4027d2cdbca669d',
@@ -53,10 +63,10 @@ export const createInstance = async (req, res) => {
   instancePromise.then(data => {
     const instanceId = data.Instances[0].InstanceId;
     console.log('Created instance', instanceId);
-    User.updateUser(user._id, { instanceid: data.Instances[0].InstanceId });
+    User.updateUser(newUser._id, { instanceid: data.Instances[0].InstanceId });
 
     console.log('data', data);
-    return res.status(200).json({ error: false, message: 'Instance created' });
+    return res.status(200).json({ error: false, user:newUser });
   }).catch(err => {
     console.error(err, err.stack);
     return res.status(500).json({ error: true, message: err.message });
@@ -70,7 +80,7 @@ export const describeInstances = async (req, res) => {
   console.log('user', user);
   console.log('accesskey', user.accesskey);
 
-  if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
+  // if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
     await configureAws(user);
     const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
 
@@ -85,10 +95,10 @@ export const describeInstances = async (req, res) => {
         return res.status(500).json({ error: true, message: err.message });
       } else {
         console.log('Success', JSON.stringify(data));
-        return res.status(200).json({ error: false, message: 'created Instances' });
+        return res.status(200).json({ error: false, instances:data });
       }
     });
-  }
+  // }
 };
 
 export const startInstance = async (req, res) => {
@@ -113,7 +123,7 @@ export const startInstance = async (req, res) => {
           console.log('Error', err);
         } else if (data) {
           console.log('Success', data.StartingInstances);
-          return res.status(200).json({ error: false, message: 'Instance created' });
+          return res.status(200).json({ error: false, instance: data });
         }
       });
     } else {
@@ -145,7 +155,7 @@ export const stopInstance = async (req, res) => {
           return res.status(500).json({ error: true, message: e.message });
         } else if (data) {
           console.log('Success', data.StoppingInstances);
-          return res.status(200).json({ error: false, message: 'Instance created' });
+          return res.status(200).json({ error: false, message: 'Instance stoped' });
         }
       });
     } else {
@@ -178,7 +188,7 @@ export const rebootInstance = async (req, res) => {
           return res.status(500).json({ error: true, message: e.message });
         } else if (data) {
           console.log('Success', data);
-          return res.status(200).json({ error: false, message: 'Instance created' });
+          return res.status(200).json({ error: false, instance:data });
         }
       });
     } else {
