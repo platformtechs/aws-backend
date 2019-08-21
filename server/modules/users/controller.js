@@ -24,8 +24,12 @@ export const createUser = async (req, res) => {
       password: hash,
       accesskey,
       accessid,
+<<<<<<< HEAD
       createdby,
       awsAdminId,
+=======
+      usertype:"SUBADMIN"
+>>>>>>> b468ebe283406e9f02a57ac8c0f0bf6d86a3c720
     });
     try {
       const data = await newUser.save();
@@ -67,6 +71,7 @@ export const createAccesskey = async (req, res) => {
 
 export const createAdmin = async (req, res) => {
   const { email, password, usertype } = req.body;
+
   console.log('create');
   console.log(req.body);
 
