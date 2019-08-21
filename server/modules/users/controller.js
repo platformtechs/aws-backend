@@ -23,6 +23,7 @@ export const createUser = async (req, res) => {
       password: hash,
       accesskey,
       accessid,
+      usertype:"SUBADMIN"
     });
     try {
       const data = await newUser.save();
