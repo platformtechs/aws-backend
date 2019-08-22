@@ -5,6 +5,7 @@
 /* eslint-disable no-undef */
 import AWS, { EC2 } from 'aws-sdk';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 import User from '../users/model';
 // eslint-disable-next-line no-return-assign
@@ -30,7 +31,7 @@ const createKeyPair = async (user) => {
   });
 };
 
-export const createInstance = async (req, res) => {
+export const createInstances = async (req, res) => {
   const { _id, email, password, username } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);

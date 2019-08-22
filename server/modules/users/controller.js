@@ -48,7 +48,7 @@ export const createUser = async (req, res) => {
 };
 
 export const createAccesskey = async (req, res) => {
-  const { accesskey, accessid, createdby, username, password } = req.body;
+  const { accesskey, accessid, createdby, username, password, email } = req.body;
   console.log('create');
   console.log(req.body);
 
@@ -62,6 +62,7 @@ export const createAccesskey = async (req, res) => {
     const newUser = new User({
       _id: new mongoose.Types.ObjectId(),
       username,
+      email,
       password: hash,
       accesskey,
       accessid,
