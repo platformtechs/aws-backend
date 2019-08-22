@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import User from './model';
 
 export const createUser = async (req, res) => {
-  const { email, password, accesskey, accessid, createdby, awsAdminId } = req.body;
+  const { email, password, accesskey, accessid, createdby, awsadminid } = req.body;
   console.log('create');
   console.log(req.body);
 
@@ -24,12 +24,9 @@ export const createUser = async (req, res) => {
       password: hash,
       accesskey,
       accessid,
-<<<<<<< HEAD
       createdby,
-      awsAdminId,
-=======
-      usertype:"SUBADMIN"
->>>>>>> b468ebe283406e9f02a57ac8c0f0bf6d86a3c720
+      awsadminid,
+      usertype:"USER"
     });
     try {
       const data = await newUser.save();
@@ -51,60 +48,49 @@ export const createUser = async (req, res) => {
 };
 
 export const createAccesskey = async (req, res) => {
-  const { accesskey, accessid, usertype, createdby } = req.body;
+  const { accesskey, accessid, createdby, username, password } = req.body;
   console.log('create');
   console.log(req.body);
 
-  const newUser = new User({
-    usertype,
-    createdby,
-    accesskey,
-    accessid,
-  });
-  try {
-    const data = await newUser.save();
-    return res.status(200).json({ error: false, user: data });
-  } catch (e) {
-    return res.status(500).json({ error: true, message: e.message });
-  }
-};
-
-export const createAdmin = async (req, res) => {
-  const { email, password, usertype } = req.body;
-
-  console.log('create');
-  console.log(req.body);
-
-  bcrypt.hash(password, 10, async (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: true,
-        message: err,
-      });
-    }
-    const newUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      email,
-      password: hash,
-      usertype,
-    });
-    try {
-      const data = await newUser.save();
-      const signupToken = jwt.sign(
-        {
-          email: data.email,
-          userId: data._id,
-        },
-        process.env.JWT_KEY,
-        {
-          expiresIn: '30d',
+    bcrypt.hash(password, 10, async (err, hash) => {
+          if (err) {
+            return res.status(500).json({
+              error: true,
+              message: err,
+            });
+          }
+          const newUser = new User({
+            _id: new mongoose.Types.ObjectId(),
+            username,
+            password: hash,
+            accesskey,
+            accessid,
+            createdby,
+            usertype: "AWSADMIN"
+          });
+          try {
+            const data = await newUser.save();
+            const signupToken = jwt.sign({
+                email: data.username,
+                userId: data._id,
+              },
+              process.env.JWT_KEY, {
+                expiresIn: '30d',
+              }
+            );
+            return res.status(200).json({
+              error: false,
+              user: data,
+              token: signupToken
+            });
+          } catch (e) {
+            return res.status(500).json({
+              error: true,
+              message: e.message
+            });
+          }
         }
-      );
-      return res.status(200).json({ error: false, user: data, token: signupToken });
-    } catch (e) {
-      return res.status(500).json({ error: true, message: e.message });
-    }
-  });
+  );
 };
 
 export const createSubAdmin = async (req, res) => {
@@ -123,7 +109,7 @@ export const createSubAdmin = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       email,
       password: hash,
-      usertype,
+      usertype:"SUBADMIN",
       createdby,
     });
     try {
@@ -193,7 +179,17 @@ export const login = async (req, res) => {
         error: true,
         message: 'error',
       });
-    }export const createAdmin = async (req, res) => {
+    }
+  } catch(error){
+    console.log("err", error)
+     return res.status(401).json({
+       error: true,
+       message: 'error',
+     });
+  }
+}
+    
+    export const createAdmin = async (req, res) => {
       const { email, password, usertype } = req.body;
       console.log('create');
       console.log(req.body);
@@ -209,7 +205,7 @@ export const login = async (req, res) => {
           _id: new mongoose.Types.ObjectId(),
           email,
           password: hash,
-          usertype,
+          usertype:"ADMIN",
         });
         try {
           const data = await newUser.save();
@@ -229,11 +225,7 @@ export const login = async (req, res) => {
         }
       });
     };
-  } catch (e) {
-    console.log('e', e);
-    return res.status(500).json({ error: true, message: e.message });
-  }
-};
+
 export const updateUser = async (req, res) => {
   try {
     const { UserName } = req.query;

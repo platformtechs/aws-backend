@@ -10,7 +10,7 @@ const UserSchema = new Schema(
     username: String,
     usertype: String,
     createdby: String,
-    awsAdminId: String,
+    awsadminid: String,
     address: String,
     email: String,
     accessid: String,
