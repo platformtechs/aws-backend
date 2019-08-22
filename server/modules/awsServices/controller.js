@@ -42,12 +42,12 @@ export const createInstance = async (req, res) => {
     username,
     email,
     password: hash,
-    accessid:user.accessid,
+    accessid: user.accessid,
     accesskey: user.accesskey,
-    usertype:"USER"
-  })
+    usertype: 'USER',
+  });
   const newUser = await tempUser.save();
-  console.log("newUser", newUser);
+  console.log('newUser', newUser);
   await createKeyPair(newUser);
   // AMI is amzn-ami-2011.09.1.x86_64-ebs
   const instanceParams = {
@@ -66,7 +66,7 @@ export const createInstance = async (req, res) => {
     User.updateUser(newUser._id, { instanceid: data.Instances[0].InstanceId });
 
     console.log('data', data);
-    return res.status(200).json({ error: false, user:newUser });
+    return res.status(200).json({ error: false, user: newUser });
   }).catch(err => {
     console.error(err, err.stack);
     return res.status(500).json({ error: true, message: err.message });
@@ -81,23 +81,23 @@ export const describeInstances = async (req, res) => {
   console.log('accesskey', user.accesskey);
 
   // if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
-    await configureAws(user);
-    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  await configureAws(user);
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
 
-    const params = {
-      DryRun: false,
-    };
+  const params = {
+    DryRun: false,
+  };
 
     // Call EC2 to retrieve policy for selected bucket
-    ec2.describeInstances(params, (err, data) => {
-      if (err) {
-        console.log('Error', err.stack);
-        return res.status(500).json({ error: true, message: err.message });
-      } else {
-        console.log('Success', JSON.stringify(data));
-        return res.status(200).json({ error: false, instances:data });
-      }
-    });
+  ec2.describeInstances(params, (err, data) => {
+    if (err) {
+      console.log('Error', err.stack);
+      return res.status(500).json({ error: true, message: err.message });
+    } else {
+      console.log('Success', JSON.stringify(data));
+      return res.status(200).json({ error: false, instances: data });
+    }
+  });
   // }
 };
 
@@ -188,7 +188,7 @@ export const rebootInstance = async (req, res) => {
           return res.status(500).json({ error: true, message: e.message });
         } else if (data) {
           console.log('Success', data);
-          return res.status(200).json({ error: false, instance:data });
+          return res.status(200).json({ error: false, instance: data });
         }
       });
     } else {
