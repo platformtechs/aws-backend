@@ -13,5 +13,5 @@ routes.post('/user/login', UserController.login);
 routes.post('/user/update/:id', upload.single(), UserController.updateUser);
 routes.post('/user/delete', UserController.deleteUser);
 routes.get('/user/all', UserController.getAllUser);
-routes.post('/user', UserController.getUser);
+routes.post('/user/get', UserController.getUser);
 export default routes;

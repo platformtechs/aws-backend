@@ -94,7 +94,7 @@ export const createAccesskey = async (req, res) => {
 };
 
 export const createSubAdmin = async (req, res) => {
-  const { email, password, usertype, createdby } = req.body;
+  const { email, password, createdby } = req.body;
   console.log('create');
   console.log(req.body);
 
