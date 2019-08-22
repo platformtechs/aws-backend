@@ -37,6 +37,13 @@ export const createInstance = async (req, res) => {
   console.log('user', user);
   console.log('accesskey', user.accesskey);
   await configureAws(user);
+  bcrypt.hash(password, 10, async (err, hash) => {
+          if (err) {
+            return res.status(500).json({
+              error: true,
+              message: err,
+            });
+          }
   const tempUser = new User({
     _id: new mongoose.Types.ObjectId(),
     username,
@@ -73,6 +80,7 @@ export const createInstance = async (req, res) => {
     console.error(err, err.stack);
     return res.status(500).json({ error: true, message: err.message });
   });
+})
 };
 
 export const describeInstances = async (req, res) => {

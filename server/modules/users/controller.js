@@ -94,7 +94,7 @@ export const createAccesskey = async (req, res) => {
 };
 
 export const createSubAdmin = async (req, res) => {
-  const { email, password, createdby } = req.body;
+  const { email, password, createdby, username } = req.body;
   console.log('create');
   console.log(req.body);
 
@@ -107,6 +107,7 @@ export const createSubAdmin = async (req, res) => {
     }
     const newUser = new User({
       _id: new mongoose.Types.ObjectId(),
+      username,
       email,
       password: hash,
       usertype: 'SUBADMIN',
@@ -189,7 +190,7 @@ export const login = async (req, res) => {
 };
 
 export const createAdmin = async (req, res) => {
-  const { email, password, usertype } = req.body;
+  const { email, password } = req.body;
   console.log('create');
   console.log(req.body);
 
@@ -253,7 +254,7 @@ export const deleteUser = async (req, res) => {
 
 export const getUser = async (req, res) => {
   try {
-    return res.status(201).json({ error: false, user: await User.findOne({ email: req.body.email }) });
+    return res.status(201).json({ error: false, user: await User.findOne({ _id: req.body._id }) });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }

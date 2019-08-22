@@ -17,7 +17,10 @@ const UserSchema = new Schema(
     accesskey: String,
     instanceid: String,
     instancekey: String,
-    isdeactivated: Boolean,
+    isdeactivated: {
+      type:String,
+      default:false
+    },
     issuspended: Boolean,
   },
   { timestamps: true }
