@@ -32,6 +32,7 @@ UserSchema.statics.updateUser = async function (id, args) {
     console.log('err', e);
   }
 };
+
 UserSchema.statics.createUser = async function (user) {
   const { email, password, accesskey, accessid } = user;
 

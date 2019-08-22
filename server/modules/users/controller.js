@@ -26,7 +26,7 @@ export const createUser = async (req, res) => {
       accessid,
       createdby,
       awsadminid,
-      usertype:"USER"
+      usertype: 'USER',
     });
     try {
       const data = await newUser.save();
@@ -52,44 +52,44 @@ export const createAccesskey = async (req, res) => {
   console.log('create');
   console.log(req.body);
 
-    bcrypt.hash(password, 10, async (err, hash) => {
-          if (err) {
-            return res.status(500).json({
-              error: true,
-              message: err,
-            });
-          }
-          const newUser = new User({
-            _id: new mongoose.Types.ObjectId(),
-            username,
-            password: hash,
-            accesskey,
-            accessid,
-            createdby,
-            usertype: "AWSADMIN"
-          });
-          try {
-            const data = await newUser.save();
-            const signupToken = jwt.sign({
-                email: data.username,
-                userId: data._id,
-              },
-              process.env.JWT_KEY, {
-                expiresIn: '30d',
-              }
-            );
-            return res.status(200).json({
-              error: false,
-              user: data,
-              token: signupToken
-            });
-          } catch (e) {
-            return res.status(500).json({
-              error: true,
-              message: e.message
-            });
-          }
-        }
+  bcrypt.hash(password, 10, async (err, hash) => {
+    if (err) {
+      return res.status(500).json({
+        error: true,
+        message: err,
+      });
+    }
+    const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
+      username,
+      password: hash,
+      accesskey,
+      accessid,
+      createdby,
+      usertype: 'AWSADMIN',
+    });
+    try {
+      const data = await newUser.save();
+      const signupToken = jwt.sign({
+        email: data.username,
+        userId: data._id,
+      },
+      process.env.JWT_KEY, {
+        expiresIn: '30d',
+      }
+      );
+      return res.status(200).json({
+        error: false,
+        user: data,
+        token: signupToken,
+      });
+    } catch (e) {
+      return res.status(500).json({
+        error: true,
+        message: e.message,
+      });
+    }
+  }
   );
 };
 
@@ -109,7 +109,7 @@ export const createSubAdmin = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       email,
       password: hash,
-      usertype:"SUBADMIN",
+      usertype: 'SUBADMIN',
       createdby,
     });
     try {
@@ -130,7 +130,6 @@ export const createSubAdmin = async (req, res) => {
     }
   });
 };
-
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -180,51 +179,51 @@ export const login = async (req, res) => {
         message: 'error',
       });
     }
-  } catch(error){
-    console.log("err", error)
-     return res.status(401).json({
-       error: true,
-       message: 'error',
-     });
+  } catch (error){
+    console.log('err', error);
+    return res.status(401).json({
+      error: true,
+      message: 'error',
+    });
   }
-}
-    
-    export const createAdmin = async (req, res) => {
-      const { email, password, usertype } = req.body;
-      console.log('create');
-      console.log(req.body);
+};
 
-      bcrypt.hash(password, 10, async (err, hash) => {
-        if (err) {
-          return res.status(500).json({
-            error: true,
-            message: err,
-          });
-        }
-        const newUser = new User({
-          _id: new mongoose.Types.ObjectId(),
-          email,
-          password: hash,
-          usertype:"ADMIN",
-        });
-        try {
-          const data = await newUser.save();
-          const signupToken = jwt.sign(
-            {
-              email: data.email,
-              userId: data._id,
-            },
-            process.env.JWT_KEY,
-            {
-              expiresIn: '30d',
-            }
-          );
-          return res.status(200).json({ error: false, user: data, token: signupToken });
-        } catch (e) {
-          return res.status(500).json({ error: true, message: e.message });
-        }
+export const createAdmin = async (req, res) => {
+  const { email, password, usertype } = req.body;
+  console.log('create');
+  console.log(req.body);
+
+  bcrypt.hash(password, 10, async (err, hash) => {
+    if (err) {
+      return res.status(500).json({
+        error: true,
+        message: err,
       });
-    };
+    }
+    const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
+      email,
+      password: hash,
+      usertype: 'ADMIN',
+    });
+    try {
+      const data = await newUser.save();
+      const signupToken = jwt.sign(
+        {
+          email: data.email,
+          userId: data._id,
+        },
+        process.env.JWT_KEY,
+        {
+          expiresIn: '30d',
+        }
+      );
+      return res.status(200).json({ error: false, user: data, token: signupToken });
+    } catch (e) {
+      return res.status(500).json({ error: true, message: e.message });
+    }
+  });
+};
 
 export const updateUser = async (req, res) => {
   try {
@@ -268,3 +267,16 @@ export const getAllUser = async (req, res) => {
   }
 };
 
+export const listUser = async (req, res) => {
+  try {
+    const { _id, usertype } = req.body;
+    const result = await User.find({
+      $and: [
+        { createdby: _id }, { usertype },
+      ],
+    });
+    return res.status(200).json({ error: false, message: 'Users', result });
+  } catch (e) {
+    return res.status(500).json({ error: true, message: e.message });
+  }
+};

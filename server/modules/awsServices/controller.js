@@ -42,12 +42,12 @@ export const createInstance = async (req, res) => {
     username,
     email,
     password: hash,
-    accessid:user.accessid,
+    accessid: user.accessid,
     accesskey: user.accesskey,
-    usertype:"USER"
-  })
+    usertype: 'USER',
+  });
   const newUser = await tempUser.save();
-  console.log("newUser", newUser);
+  console.log('newUser', newUser);
   await createKeyPair(newUser);
   // AMI is amzn-ami-2011.09.1.x86_64-ebs
   const instanceParams = {
@@ -61,12 +61,14 @@ export const createInstance = async (req, res) => {
   // Create an EC2 service object
   const instancePromise = new EC2({ apiVersion: '2016-11-15', region: 'us-west-1' }).createInstance(instanceParams).promise();
   instancePromise.then(data => {
+    console.log(data);
+
     const instanceId = data.Instances[0].InstanceId;
     console.log('Created instance', instanceId);
     User.updateUser(newUser._id, { instanceid: data.Instances[0].InstanceId });
 
     console.log('data', data);
-    return res.status(200).json({ error: false, user:newUser });
+    return res.status(200).json({ error: false, user: newUser });
   }).catch(err => {
     console.error(err, err.stack);
     return res.status(500).json({ error: true, message: err.message });
@@ -81,24 +83,43 @@ export const describeInstances = async (req, res) => {
   console.log('accesskey', user.accesskey);
 
   // if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
-    await configureAws(user);
-    const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  await configureAws(user);
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
 
-    const params = {
-      DryRun: false,
-    };
+  const params = {
+    DryRun: false,
+  };
 
     // Call EC2 to retrieve policy for selected bucket
-    ec2.describeInstances(params, (err, data) => {
-      if (err) {
-        console.log('Error', err.stack);
-        return res.status(500).json({ error: true, message: err.message });
-      } else {
-        console.log('Success', JSON.stringify(data));
-        return res.status(200).json({ error: false, instances:data });
-      }
-    });
+  ec2.describeInstances(params, (err, data) => {
+    if (err) {
+      console.log('Error', err.stack);
+      return res.status(500).json({ error: true, message: err.message });
+    } else {
+      console.log('Success', JSON.stringify(data));
+      return res.status(200).json({ error: false, instances: data });
+    }
+  });
   // }
+};
+
+export const listInstances = async (req, res) => {
+  const { _id } = req.body;
+  const userId = mongoose.Types.ObjectId(_id);
+  const user = await User.findById(userId);
+  console.log('user', user);
+
+  await configureAws(user);
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const params = {
+    InstanceIds: [
+      user.instanceId,
+    ],
+  };
+  ec2.describeInstances(params, (err, data) => {
+    if (err) console.log(err, err.stack); // an error occurred
+    else console.log(data); // successful response
+  });
 };
 
 export const startInstance = async (req, res) => {
@@ -188,7 +209,7 @@ export const rebootInstance = async (req, res) => {
           return res.status(500).json({ error: true, message: e.message });
         } else if (data) {
           console.log('Success', data);
-          return res.status(200).json({ error: false, instance:data });
+          return res.status(200).json({ error: false, instance: data });
         }
       });
     } else {
