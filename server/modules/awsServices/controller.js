@@ -61,6 +61,8 @@ export const createInstance = async (req, res) => {
   // Create an EC2 service object
   const instancePromise = new EC2({ apiVersion: '2016-11-15', region: 'us-west-1' }).createInstance(instanceParams).promise();
   instancePromise.then(data => {
+    console.log(data);
+
     const instanceId = data.Instances[0].InstanceId;
     console.log('Created instance', instanceId);
     User.updateUser(newUser._id, { instanceid: data.Instances[0].InstanceId });
@@ -99,6 +101,25 @@ export const describeInstances = async (req, res) => {
     }
   });
   // }
+};
+
+export const listInstances = async (req, res) => {
+  const { _id } = req.body;
+  const userId = mongoose.Types.ObjectId(_id);
+  const user = await User.findById(userId);
+  console.log('user', user);
+
+  await configureAws(user);
+  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const params = {
+    InstanceIds: [
+      user.instanceId,
+    ],
+  };
+  ec2.describeInstances(params, (err, data) => {
+    if (err) console.log(err, err.stack); // an error occurred
+    else console.log(data); // successful response
+  });
 };
 
 export const startInstance = async (req, res) => {
