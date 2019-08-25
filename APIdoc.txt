@@ -271,24 +271,64 @@ BODY
   "error": "error.unauthorized"
 }
 
-
-
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbEBnbWFpbC5jb20iLCJ1c2VySWQiOiI1ZDVjZDk1YTk1YmE1NzBmOTQzYTJiYmQiLCJpYXQiOjE1NjYzNjYwNDIsImV4cCI6MTU2ODk1ODA0Mn0.ZxBwtPhpceQ3gglvEu-YWnBGMH_hwBl995Xl9uPxHHI
-
-
-Create User:
-POST  ROOT_URL/api/aws/create
+Create AccessKey:
+POST  ROOT_URL/api/user/create/accesskey
 
 HEADERS
 Content-Type:application/json
 BODY
- {
-        "_id": "5d5c493ee0c08412d82055ec",
-        "email": "tanishaaggarwal0225@gmail.com",
-        "password": "1234",
-        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
-        "accessid": "AKIAX6MJJ3MUPZYFAADA",
- }
+{
+	"accesskey": "AULedHiueNzlONZIMHc8KDTFxGUVa4mUA93dNfnF",
+	"accessid" : "AKIA3XEDOBK5KXJUESXJ",
+	"createdby": "5d5fecdfa34325165e2a7cbe",
+	"username": "tanisha"
+}
+
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+    "error": false,
+    "user": {
+        "_id": "5d5ff2672f10ad1ada4472c3",
+        "username": "tanisha",
+        "password": "$2b$10$Vhd7fZ9FO8qGrzdnKdpe2eFEr/NWJkcCIph3YmRhamCCetteduzaa",
+        "accesskey": "AULedHiueNzlONZIMHc8KDTFxGUVa4mUA93dNfnF",
+        "accessid": "AKIA3XEDOBK5KXJUESXJ",
+        "createdby": "5d5fecdfa34325165e2a7cbe",
+        "usertype": "AWSADMIN",
+        "createdAt": "2019-08-23T14:04:23.034Z",
+        "updatedAt": "2019-08-23T14:04:23.034Z",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGEiLCJ1c2VySWQiOiI1ZDVmZjI2NzJmMTBhZDFhZGE0NDcyYzMiLCJpYXQiOjE1NjY1NjkwNjMsImV4cCI6MTU2OTE2MTA2M30.QO15i90mXQhclrof2Q8vWy_ot0A-FqQBFjSV_rfbTvQ"
+}
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "This account is currently blocked and not recognized as a valid account. Please contact aws-verification@amazon.com if you have questions."
+}
+
+
+Create SUBADMIN:
+POST  ROOT_URL/api/user/create/subadmin
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+	"username": "tanisha",
+    "email": "tanishask@gmail.com",
+	"password":"1234",
+	"createdby": "5d5fecdfa34325165e2a7cbe"
+}
+
 
 Response
 200
@@ -298,16 +338,17 @@ BODY
 {
     "error": false,
     "user": {
-        "_id": "5d5c493ee0c08412d82055ec",
-        "email": "tanishaaggarwal0225@gmail.com",
-        "password": "$2b$10$E9l1JK2B2nPt7v6ZH5K.4OKqVEP95CIcgTutHkElnP8mGyf5RL.5W",
-        "accesskey": "J7cc1aZyvSz1WBJZdahxKpKfmKTLpSUcd2GUB0oP",
-        "accessid": "AKIAX6MJJ3MUPZYFAADA",
-        "createdAt": "2019-08-20T19:25:50.309Z",
-        "updatedAt": "2019-08-20T19:25:50.309Z",
+        "_id": "5d5fedbea34325165e2a7cbf",
+        "username": "tanisha",
+        "email": "tanishask@gmail.com",
+        "password": "$2b$10$.Zn9xiX2XMEH5q2Z1bGjn.hL9DAzFV0xNn/enlygmDMpCxigwCkYe",
+        "createdby": "5d5fecdfa34325165e2a7cbe",
+        "usertype": "SUBADMIN",
+        "createdAt": "2019-08-23T13:44:30.028Z",
+        "updatedAt": "2019-08-23T13:44:30.028Z",
         "__v": 0
     },
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFhZ2dhcndhbDAyMjVAZ21haWwuY29tIiwidXNlcklkIjoiNWQ1YzQ5M2VlMGMwODQxMmQ4MjA1NWVjIiwiaWF0IjoxNTY2MzI5MTUwLCJleHAiOjE1Njg5MjExNTB9.qAUj8Pq9V4huItcVsNhikgfh2nFM7886KZ5Nc8vCbdY"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFza0BnbWFpbC5jb20iLCJ1c2VySWQiOiI1ZDVmZWRiZWEzNDMyNTE2NWUyYTdjYmYiLCJpYXQiOjE1NjY1Njc4NzAsImV4cCI6MTU2OTE1OTg3MH0.bRy0hSNAX9HcceTqdEyEDOCXcuc087JkWbqG3OhLaE0"
 }
 Response
 500
@@ -316,5 +357,146 @@ Content-Type:application/json
 BODY
 {
     "error": true,
-    "message": "failed"
+    "message": "This account is currently blocked and not recognized as a valid account. Please contact aws-verification@amazon.com if you have questions."
 }
+
+
+Create ADMIN:
+POST  ROOT_URL/api/user/create/admin
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+	"username": "tanisha",
+    "email": "tanishask@gmail.com",
+	"password":"1234",
+	"createdby": "5d5fecdfa34325165e2a7cbe"
+}
+
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "user": {
+        "_id": "5d5fedbea34325165e2a7cbf",
+        "username": "tanisha",
+        "email": "tanishask@gmail.com",
+        "password": "$2b$10$.Zn9xiX2XMEH5q2Z1bGjn.hL9DAzFV0xNn/enlygmDMpCxigwCkYe",
+        "createdby": "5d5fecdfa34325165e2a7cbe",
+        "usertype": "SUBADMIN",
+        "createdAt": "2019-08-23T13:44:30.028Z",
+        "updatedAt": "2019-08-23T13:44:30.028Z",
+        "__v": 0
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRhbmlzaGFza0BnbWFpbC5jb20iLCJ1c2VySWQiOiI1ZDVmZWRiZWEzNDMyNTE2NWUyYTdjYmYiLCJpYXQiOjE1NjY1Njc4NzAsImV4cCI6MTU2OTE1OTg3MH0.bRy0hSNAX9HcceTqdEyEDOCXcuc087JkWbqG3OhLaE0"
+}
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "This account is currently blocked and not recognized as a valid account. Please contact aws-verification@amazon.com if you have questions."
+}
+
+
+
+Create INSTANCE:
+POST  ROOT_URL/api/aws/create
+
+HEADERS
+Content-Type:application/json
+BODY
+{
+   "_id": "5d5fedbea34325165e2a7cbf",
+  "username":"tanisha",
+  "adminId":"5d5ff2672f10ad1ada4472c3"
+}
+
+
+
+Response
+200
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": false,
+    "instanceId": "i-064d61094675e11b0",
+    "ipAddress": "172.31.43.80",
+    "username": "tanisha",
+    "password": "$2b$10$N0RI5Fnu6ecn/501hbkfje3cn5LYv5eUGkMq6HLMW.hOErd5mjkR6"
+}
+Response
+500
+HEADERS
+Content-Type:application/json
+BODY
+{
+    "error": true,
+    "message": "This account is currently blocked and not recognized as a valid account. Please contact aws-verification@amazon.com if you have questions."
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+data { Groups: [],
+  Instances:
+   [ { AmiLaunchIndex: 0,
+       ImageId: 'ami-028b3bf1662e6082f',
+       InstanceId: 'i-0989aab4895f44337',
+       InstanceType: 't2.micro',
+       KeyName: 'tanisha',
+       LaunchTime: 2019-08-23T14:57:04.000Z,
+       Monitoring: [Object],
+       Placement: [Object],
+       Platform: 'windows',
+       PrivateDnsName: 'ip-172-31-45-11.ap-south-1.compute.internal',
+       PrivateIpAddress: '172.31.45.11',
+       ProductCodes: [],
+       PublicDnsName: '',
+       State: [Object],
+       StateTransitionReason: '',
+       SubnetId: 'subnet-6cdcfd04',
+       VpcId: 'vpc-8591a9ed',
+       Architecture: 'x86_64',
+       BlockDeviceMappings: [],
+       ClientToken: '',
+       EbsOptimized: false,
+       Hypervisor: 'xen',
+       ElasticGpuAssociations: [],
+       ElasticInferenceAcceleratorAssociations: [],
+       NetworkInterfaces: [Array],
+       RootDeviceName: '/dev/sda1',
+       RootDeviceType: 'ebs',
+       SecurityGroups: [Array],
+       SourceDestCheck: true,
+       StateReason: [Object],
+       Tags: [],
+       VirtualizationType: 'hvm',
+       CpuOptions: [Object],
+       CapacityReservationSpecification: [Object],
+       Licenses: [] } ],
+  OwnerId: '805582015162',
+  ReservationId: 'r-09e15dbd25cac5fa7' }

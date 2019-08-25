@@ -5,7 +5,7 @@ import { upload } from '../../config/fileUpload';
 
 const routes = new Router();
 
-routes.post('/user/create/user', UserController.createUser);
+// routes.post('/user/create/user', UserController.createUser);
 routes.post('/user/create/admin', UserController.createAdmin);
 routes.post('/user/create/subadmin', UserController.createSubAdmin);
 routes.post('/user/create/accesskey', UserController.createAccesskey);

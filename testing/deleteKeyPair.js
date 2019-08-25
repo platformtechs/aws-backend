@@ -1,19 +1,25 @@
+/* eslint-disable no-return-assign */
+/* eslint-disable no-undef */
 const AWS = require('aws-sdk');
-const fs = require('fs');
 
-AWS.config.update({region: 'us-east-1'});
-let credentials = new AWS.SharedIniFileCredentials({profile: 'amplify'});
-AWS.config.credentials = credentials;
-const ec2 = new AWS.EC2({apiVersion: '2016-11-15'});
+
+  AWS.config = new AWS.Config({
+    accessKeyId: 'AKIA3XEDOBK5KXJUESXJ',
+    // eslint-disable-next-line no-undef
+    secretAccessKey: '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',
+    region: 'ap-south-1',
+  });
+
+const ec2 = new AWS.EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' });
 
 const params = {
-    KeyName: 'KEY_PAIR_NAME_TEST'
+  KeyName: 'tanisha',
 };
 
-ec2.deleteKeyPair(params, function (err, data) {
-    if (err) {
-        console.log("Error", err);
-    } else {
-        console.log("Key Pair Deleted");
-    }
+ec2.deleteKeyPair(params, (err, data) => {
+  if (err) {
+    console.log('Error', err);
+  } else {
+    console.log('Key Pair Deleted');
+  }
 });
