@@ -142,7 +142,7 @@ export const login = async (req, res) => {
     console.log(user);
     // const hashedPassword = await hashPassword(password);
 
-    console.log(password, 'mypsss');
+    console.log(password, 'mypass');
 
     if (user) {
       bcrypt.compare(password, user.password, (err, result) => {
@@ -167,19 +167,19 @@ export const login = async (req, res) => {
           }
         );
 
-        let {email, usertype, _id} = user
+        const { email, usertype, _id } = user;
 
-        let response = {
+        const response = {
           email,
           usertype,
           _id,
-          username          
-        }
-          // user.password = null;
+          username,
+        };
+        // user.password = null;
         return res.status(200).json({
           error: false,
           message: 'Auth successful',
-          user:response,
+          user: response,
           token: loginToken,
         });
       });
@@ -229,13 +229,13 @@ export const createAdmin = async (req, res) => {
           expiresIn: '30d',
         }
       );
-      let {_id, usertype} = data
-      let response = {
+      const { _id, usertype } = data;
+      const response = {
         _id,
         username,
         email,
-        usertype
-      }
+        usertype,
+      };
       return res.status(200).json({ error: false, user: response, token: signupToken });
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
@@ -307,7 +307,7 @@ export const listUser = async (req, res) => {
       $and: [
         { createdby: _id }, { usertype },
       ],
-    }, {"username":1, "email":1, "isdeactivated":1} );
+    }, {"username":1, "email":1, "isdeactivated":1, "accessid":1} );
     return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
