@@ -3,9 +3,9 @@
 const AWS = require('aws-sdk');
 
 AWS.config = new AWS.Config({
-  accessKeyId: 'AKIAX6MJJ3MULXDMWOZM',
+  accessKeyId: '/*access key id*/',
   // eslint-disable-next-line no-undef
-  secretAccessKey: '5IpKQPj65vdokWgTLzZqDRpc0zP9us7fVei+KeWG',
+  secretAccessKey: '/*secret key*/',
   region: 'ap-south-1',
 });
 
