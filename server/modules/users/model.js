@@ -19,8 +19,10 @@ const UserSchema = new Schema(
     imageId: String,
     instanceid: String,
     instancekey: String,
-    instancetype: String,
-    isdeactivated: Boolean,
+    isdeactivated: {
+      type:String,
+      default:false
+    },
     issuspended: Boolean,
   },
   { timestamps: true }

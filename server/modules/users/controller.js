@@ -118,7 +118,14 @@ export const createSubAdmin = async (req, res) => {
           expiresIn: '30d',
         }
       );
-      return res.status(200).json({ error: false, user: data, token: signupToken });
+
+      let response = {
+        _id:data._id,
+        username,
+        email,
+        usertype:data.usertype,
+      }
+      return res.status(200).json({ error: false, user: response, token: signupToken });
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
     }
@@ -159,11 +166,20 @@ export const login = async (req, res) => {
             expiresIn: '30d',
           }
         );
+
+        let {email, usertype, _id} = user
+
+        let response = {
+          email,
+          usertype,
+          _id,
+          username          
+        }
           // user.password = null;
         return res.status(200).json({
           error: false,
           message: 'Auth successful',
-          user,
+          user:response,
           token: loginToken,
         });
       });
@@ -213,7 +229,14 @@ export const createAdmin = async (req, res) => {
           expiresIn: '30d',
         }
       );
-      return res.status(200).json({ error: false, user: data, token: signupToken });
+      let {_id, usertype} = data
+      let response = {
+        _id,
+        username,
+        email,
+        usertype
+      }
+      return res.status(200).json({ error: false, user: response, token: signupToken });
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
     }
@@ -284,7 +307,7 @@ export const listUser = async (req, res) => {
       $and: [
         { createdby: _id }, { usertype },
       ],
-    });
+    }, {"username":1, "email":1, "isdeactivated":1} );
     return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
