@@ -414,12 +414,8 @@ HEADERS
 Content-Type:application/json
 BODY
 {
-   "_id": "5d5fedbea34325165e2a7cbf",
-  "username":"tanisha",
   "adminId":"5d5ff2672f10ad1ada4472c3"
 }
-
-
 
 Response
 200
@@ -428,10 +424,10 @@ Content-Type:application/json
 BODY
 {
     "error": false,
-    "instanceId": "i-064d61094675e11b0",
-    "ipAddress": "172.31.43.80",
+    "instanceId": "i-08ecc9fe39d1bf842",
+    "ipAddress": "172.31.39.162",
     "username": "tanisha",
-    "password": "$2b$10$N0RI5Fnu6ecn/501hbkfje3cn5LYv5eUGkMq6HLMW.hOErd5mjkR6"
+    "password": "zuvma"
 }
 Response
 500
