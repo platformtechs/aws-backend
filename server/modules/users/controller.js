@@ -51,49 +51,39 @@ export const createAccesskey = async (req, res) => {
   const { accesskey, accessid, createdby, username } = req.body;
   console.log('create');
   console.log(req.body);
-  const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-  console.log(password);
+  // const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  // console.log(password);
   console.log('------------------------===============-----------------------');
 
-  bcrypt.hash(password, 10, async (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: true,
-        message: 'err',
-      });
+  const newUser = new User({
+    _id: new mongoose.Types.ObjectId(),
+    username,
+    accesskey,
+    accessid,
+    createdby,
+    usertype: 'AWSADMIN',
+  });
+  try {
+    const data = await newUser.save();
+    const signupToken = jwt.sign({
+      username: data.username,
+      userId: data._id,
+    },
+    process.env.JWT_KEY, {
+      expiresIn: '30d',
     }
-    const newUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      username,
-      password: hash,
-      accesskey,
-      accessid,
-      createdby,
-      usertype: 'AWSADMIN',
+    );
+    return res.status(200).json({
+      error: false,
+      user: data,
+      token: signupToken,
     });
-    try {
-      const data = await newUser.save();
-      const signupToken = jwt.sign({
-        email: data.username,
-        userId: data._id,
-      },
-      process.env.JWT_KEY, {
-        expiresIn: '30d',
-      }
-      );
-      return res.status(200).json({
-        error: false,
-        user: data,
-        token: signupToken,
-      });
-    } catch (e) {
-      return res.status(500).json({
-        error: true,
-        message: e.message,
-      });
-    }
+  } catch (e) {
+    return res.status(500).json({
+      error: true,
+      message: e.message,
+    });
   }
-  );
 };
 
 export const createSubAdmin = async (req, res) => {
@@ -120,7 +110,7 @@ export const createSubAdmin = async (req, res) => {
       const data = await newUser.save();
       const signupToken = jwt.sign(
         {
-          email: data.email,
+          username: data.username,
           userId: data._id,
         },
         process.env.JWT_KEY,
@@ -161,7 +151,7 @@ export const login = async (req, res) => {
 
         const loginToken = jwt.sign(
           {
-            email: user.email,
+            username: user.username,
             userId: user._id,
           },
           process.env.JWT_KEY,
@@ -215,7 +205,7 @@ export const createAdmin = async (req, res) => {
       const data = await newUser.save();
       const signupToken = jwt.sign(
         {
-          email: data.email,
+          username: data.username,
           userId: data._id,
         },
         process.env.JWT_KEY,
@@ -240,6 +230,21 @@ export const updateUser = async (req, res) => {
     const userId = mongoose.Types.ObjectId(req.params.id);
     console.log('id', userId);
     await User.updateUser(userId, data);
+    return res.status(201).json({ error: false, message: 'user updated' });
+  } catch (e) {
+    return res.status(500).json({ error: true, message: e.message });
+  }
+};
+export const modifyUser = async (req, res) => {
+  try {
+    const { UserName } = req.query;
+    let data = {};
+    console.log('UserName', UserName);
+    data = req.body;
+    console.log('query', req.query);
+    const userId = mongoose.Types.ObjectId(req.params.id);
+    console.log('id', userId);
+    await User.modifyUser(userId, data);
     return res.status(201).json({ error: false, message: 'user updated' });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });

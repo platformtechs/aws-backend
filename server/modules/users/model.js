@@ -26,17 +26,35 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.statics.updateUser = async function (id, args) {
+UserSchema.statics.updateUser = async (id, args) => {
   try {
     console.log('in update');
     const result = await this.findByIdAndUpdate(id, { $set: { ...args } });
+
     console.log('result', result);
+    return result;
   } catch (e) {
     console.log('err', e);
   }
 };
 
-UserSchema.statics.createUser = async function (user) {
+UserSchema.static.modifyUser = async (id, args) => {
+  try {
+    console.log('in update');
+    // const result = await this.findByIdAndUpdate(id, { $set: { ...args } });
+    const result = await this.findAndModify({
+      query: { _id: id },
+      update: { $set: { ...args } },
+      new: true,
+    });
+    console.log('result', result);
+    return result;
+  } catch (e) {
+    console.log('err', e);
+  }
+};
+
+UserSchema.statics.createUser = async (user) => {
   const { email, password, accesskey, accessid } = user;
 
   bcrypt.hash(password, 10, async (e, hash) => {

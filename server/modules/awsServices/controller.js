@@ -13,35 +13,41 @@ import bcrypt from 'bcrypt';
 import NodeRSA from 'node-rsa';
 import User from '../users/model';
 // eslint-disable-next-line no-return-assign
-const configureAws = async (user) =>
+const configureAws = (user) =>
   AWS.config = new AWS.Config({
     accessKeyId: user.accessid, secretAccessKey: user.accesskey, region: 'ap-south-1',
   });
 
-const createKeyPair = async (user) => {
-  const params = {
-    KeyName: user.username,
-  };
+//
 
-  // Create the key pair
-  await new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).createKeyPair(params, (err, data) => {
-    if (err) {
-      console.log('Error', err);
-    } else {
-      const keyData = JSON.stringify(data);
-      console.log('------------------------===============-----------------------');
-      console.log(keyData);
-      console.log('------------------------===============-----------------------');
+//   const params = {
 
-      User.updateUser(user._id, { instancekey: data.KeyMaterial });
-      console.log('------------------------===============-----------------------');
-    }
-  });
-  console.log('access key user', NewU);
-};
+//   };
 
-export const createInstance = async (req, res) => {
-  const { _id, username, adminId } = req.body;
+//   // Create the key pair
+//   const createkeyPair = await new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).createKeyPair(params);
+//   createkeyPair.then(data => {
+//     const keyData = JSON.stringify(data);
+//       console.log('------------------------===============-----------------------');
+//       console.log(keyData);
+//       console.log('------------------------===============-----------------------');
+
+//      const newU = await User.updateUser(user._id, { instancekey: data.KeyMaterial });
+
+//       console.log('------------------------===============-----------------------');
+//       console.log('new user in access key', newU);
+//       console.log('data', data);
+
+//       return newU;
+//   }).catch(err => {
+//     console.log('data', data);
+//     console.error(err, err.stack);
+//     return res.status(500).json({ error: true, message: err.message });
+//   });
+// };
+
+export const createInstance = async (req, res) => { // id:awsadmin , createdby:subadmin
+  const { adminId } = req.body;
   const user = await User.findById(adminId);
   console.log('user', user);
   console.log('------------------------===============-----------------------');
@@ -50,7 +56,9 @@ export const createInstance = async (req, res) => {
   console.log('------------------------===============-----------------------');
 
   await configureAws(user);
-  bcrypt.hash(user.password, 10, async (err, hash) => {
+  const ec2 = new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' });
+  const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+  bcrypt.hash(password, 10, async (err, hash) => {
     if (err) {
       return res.status(500).json({
         error: true,
@@ -59,12 +67,12 @@ export const createInstance = async (req, res) => {
     }
     const tempUser = new User({
       _id: new mongoose.Types.ObjectId(),
-      username,
+      username: user.username,
       email: user.email,
       password: hash,
       accessid: user.accessid,
       accesskey: user.accesskey,
-      createdby: _id,
+      createdby: user.createdby,
       usertype: 'USER',
     });
     const newUser = await tempUser.save();
@@ -72,55 +80,77 @@ export const createInstance = async (req, res) => {
 
     console.log('newUser', newUser);
     console.log('------------------------===============-----------------------');
-
-    await createKeyPair(newUser);
-
-    console.log('------------------------===============-----------------------');
-    // AMI is amzn-ami-2011.09.1.x86_64-ebs
-    const instanceParams = {
-      ImageId: 'ami-028b3bf1662e6082f',
-      InstanceType: 't2.micro',
-      KeyName: user.username,
-      MinCount: 1,
-      MaxCount: 1,
+    const keyPairParams = {
+      KeyName: newUser.username,
     };
+    console.log('newUser name', newUser.username);
 
-    // Create an EC2 service object
-    const instancePromise = new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).runInstances(instanceParams).promise();
-    instancePromise.then(data => {
-      console.log(data);
-      console.log('------------------------===============-----------------------');
+    const key = await ec2.createKeyPair(keyPairParams).promise().then(data => data).catch(err => {
+      console.error(err, err.stack);
+      return res.status(500).json({ error: true, message: err.message });
+    });
+    console.log('------------------------===============-----------------------');
+    const keyData = JSON.stringify(key);
+    console.log('------------------------===============-----------------------');
+    console.log('key', keyData);
+    const accessKey = key.KeyMaterial;
+    console.log('------------------------===============-----------------------');
 
-      const instanceId = data.Instances[0].InstanceId;
-      console.log('Created instance', instanceId);
-      User.updateUser(newUser._id, { instanceid: data.Instances[0].InstanceId });
-      console.log('------------------------===============-----------------------');
+    console.log('Data Key', key.KeyMaterial);
+    console.log('------------------------===============-----------------------');
+    console.log('------------------------===============-----------------------');
 
-      console.log('data', data);
-      const ipAddress = data.Instances[0].PrivateIpAddress;
+    console.log('newUser name', newUser.username);
+    console.log('------------------------===============-----------------------');
 
-      const params = {
-        InstanceId: instanceId
-      };
-      new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).getPasswordData(params, (err, data) => {
-        if (err) console.log("ejofj"); // an error occurred
-        else {
-          console.log('id newUser', newUser);
-          // const newU = User.findById({_id: newUser._id });
-          // console.log("new user", newU);
-          const key = new NodeRSA(newUser.instancekey);
-          console.log('key', newUser.instancekey);
-          const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
-          // const decryptedPassword = getPassword.GetDecryptedPassword(data.PasswordData);
-          return res.status(200).json({ error: false, instanceId, ipAddress, username: newUser.username, password: decryptedPassword });
-      }
-     });
+  console.log('datakey..key.', accessKey);
+  console.log('------------------------===============-----------------------');
+  console.log('new user id', newUser._id);
+  const NewUser = await User.modifyUser(newUser._id, { instancekey: accessKey });
+console.log('Acess keyb updated User', NewUser);
+    // const NewU = await createKeyPair(newUser);5d624bc6d1004310e2c2e301
+
+    // // AMI is amzn-ami-2011.09.1.x86_64-ebs
+    // const instanceParams = {
+    //   ImageId: 'ami-028b3bf1662e6082f',
+        //   InstanceType: 't2.micro',
+    //   KeyName: user.username,
+    //   MinCount: 1,
+    //   MaxCount: 1,
+    // };
+
+    // // Create an EC2 service object
+
+    // const instance = await ec2.runInstances.runInstances(instanceParams);
+    // const instanceId = instance.Instances[0].InstanceId;
+    // console.log('------------------------===============-----------------------');
+    // console.log('Created instance', instance);
+    // console.log('------------------------===============-----------------------');
+    // console.log('Created instance', instanceId);
+    // const ipAddress = instance.Instances[0].PrivateIpAddress;
+    // const ec2Params = {
+    //   InstanceId: instanceId
+    // };
+    // const encPass = await ec2.getPasswordData(ec2Params);
+
+    //   new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).getPasswordData(params, (err, data) => {
+    //     if (err) console.log("ejofj"); // an error occurred
+    //     else {
+    //       console.log('id newUser', NewU);
+    //       // const newU = User.findById({_id: newUser._id });
+    //       // console.log("new user", newU);
+    //       const key = new NodeRSA(NewU.instancekey);
+    //       console.log('key', NewU.instancekey);
+    //       const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
+    //       // const decryptedPassword = getPassword.GetDecryptedPassword(data.PasswordData);
+    //       return res.status(200).json({ error: false, instanceId, ipAddress, username: NewU.username, password: decryptedPassword });
+    //   }
+    //  });
 
     }).catch(err => {
       console.error(err, err.stack);
       return res.status(500).json({ error: true, message: err.message });
     });
-});
 };
 
 // export const describeInstances = async (req, res) => {
