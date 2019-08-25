@@ -7,7 +7,9 @@
 
 /* eslint-disable no-shadow */
 /* eslint-disable no-undef */
-import AWS, { EC2 } from 'aws-sdk';
+import AWS, {
+  EC2
+} from 'aws-sdk';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import NodeRSA from 'node-rsa';
@@ -15,39 +17,15 @@ import User from '../users/model';
 // eslint-disable-next-line no-return-assign
 const configureAws = (user) =>
   AWS.config = new AWS.Config({
-    accessKeyId: user.accessid, secretAccessKey: user.accesskey, region: 'ap-south-1',
+    accessKeyId: user.accessid,
+    secretAccessKey: user.accesskey,
+    region: 'ap-south-1',
   });
 
-//
-
-//   const params = {
-
-//   };
-
-//   // Create the key pair
-//   const createkeyPair = await new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).createKeyPair(params);
-//   createkeyPair.then(data => {
-//     const keyData = JSON.stringify(data);
-//       console.log('------------------------===============-----------------------');
-//       console.log(keyData);
-//       console.log('------------------------===============-----------------------');
-
-//      const newU = await User.updateUser(user._id, { instancekey: data.KeyMaterial });
-
-//       console.log('------------------------===============-----------------------');
-//       console.log('new user in access key', newU);
-//       console.log('data', data);
-
-//       return newU;
-//   }).catch(err => {
-//     console.log('data', data);
-//     console.error(err, err.stack);
-//     return res.status(500).json({ error: true, message: err.message });
-//   });
-// };
-
-export const createInstance = async (req, res) => { // id:awsadmin , createdby:subadmin
-  const { adminId } = req.body;
+export const createInstance = async (req, res) => {
+  const {
+    adminId
+  } = req.body;
   const user = await User.findById(adminId);
   console.log('user', user);
   console.log('------------------------===============-----------------------');
@@ -56,7 +34,10 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
   console.log('------------------------===============-----------------------');
 
   await configureAws(user);
-  const ec2 = new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' });
+  const ec2 = new EC2({
+    apiVersion: '2016-11-15',
+    region: 'ap-south-1'
+  });
   const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
   bcrypt.hash(password, 10, async (err, hash) => {
     if (err) {
@@ -88,7 +69,10 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
 
     const key = await ec2.createKeyPair(keyPairParams).promise().then(data => data).catch(err => {
       console.error(err, err.stack);
-      return res.status(500).json({ error: true, message: err.message });
+      return res.status(500).json({
+        error: true,
+        message: err.message
+      });
     });
     console.log('------------------------===============-----------------------');
     const keyData = JSON.stringify(key);
@@ -104,16 +88,18 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
     console.log('newUser name', newUser.username);
     console.log('------------------------===============-----------------------');
 
-  console.log('datakey..key.', accessKey);
-  console.log('------------------------===============-----------------------');
-  console.log('new user id', newUser._id);
+    console.log('datakey..key.', accessKey);
+    console.log('------------------------===============-----------------------');
+    console.log('new user id', newUser._id);
 
-  // await User.insert([{hello:'world_safe1'}
-  // , {hello:'world_safe2'}], {w:1}, function(err, result) {
-  // assert.equal(null, err);
+    // await User.insert([{hello:'world_safe1'}
+    // , {hello:'world_safe2'}], {w:1}, function(err, result) {
+    // assert.equal(null, err);
 
-  const NewUser = await User.updateUser(newUser._id, { instancekey: accessKey });
-console.log('Access keyPair updated User', NewUser);
+    const NewUser = await User.updateUser(newUser._id, {
+      instancekey: accessKey
+    });
+    console.log('Access keyPair updated User', NewUser);
 
     // AMI is amzn-ami-2011.09.1.x86_64-ebs
     const instanceParams = {
@@ -128,42 +114,40 @@ console.log('Access keyPair updated User', NewUser);
 
     const instancePromise = await ec2.runInstances(instanceParams).promise().then(data => data).catch(err => {
       console.error(err, err.stack);
-      return res.status(500).json({ error: true, message: err.message });
+      return res.status(500).json({
+        error: true,
+        message: err.message
+      });
     });
 
     console.log('------------------------===============-----------------------');
     console.log('instance data', instancePromise);
     console.log('------------------------===============-----------------------');
-    const instanceId = instancePromise.Instances[0].InstanceId;
+    const instanceid = instancePromise.Instances[0].InstanceId;
     console.log('------------------------===============-----------------------');
 
-    console.log("Created instance", instanceId);
+    console.log("Created instance", instanceid);
     console.log('------------------------===============-----------------------');
     const ipAddress = instancePromise.Instances[0].PrivateIpAddress;
-
-    // const ec2Params = {
-    //   InstanceId: instanceId
-    // };
-    // const encPass = await ec2.getPasswordData(ec2Params);
-
-    //   new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' }).getPasswordData(params, (err, data) => {
-    //     if (err) console.log("ejofj"); // an error occurred
-    //     else {
-    //       console.log('id newUser', NewU);
-    //       // const newU = User.findById({_id: newUser._id });
-    //       // console.log("new user", newU);
-    //       const key = new NodeRSA(NewU.instancekey);
-    //       console.log('key', NewU.instancekey);
-    //       const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
-    //       // const decryptedPassword = getPassword.GetDecryptedPassword(data.PasswordData);
-    //   }
-    //  });
-
-     return res.status(200).json({ error: false, instanceId, ipAddress, username: NewUser.username, password });
-    }).catch(err => {
-      console.error(err, err.stack);
-      return res.status(500).json({ error: true, message: err.message });
+    const NewU = await User.updateUser(NewUser._id, {
+      instanceid
     });
+    console.log('updated User', NewU);
+
+    return res.status(200).json({
+      error: false,
+      instanceid,
+      ipAddress,
+      username: NewU.username,
+      password
+    });
+  }).catch(err => {
+    console.error(err, err.stack);
+    return res.status(500).json({
+      error: true,
+      message: err.message
+    });
+  });
 };
 
 // export const describeInstances = async (req, res) => {
@@ -195,38 +179,84 @@ console.log('Access keyPair updated User', NewUser);
 // };
 
 export const listInstances = async (req, res) => {
-  const { _id } = req.body;
+  const {
+    _id
+  } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);
   const instanceId = user.map(_ => _.instanceid);
   console.log('user', user);
 
   await configureAws(user);
-  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const ec2 = new AWS.EC2({
+    apiVersion: '2016-11-15'
+  });
   const params = {
     InstanceIds: instanceId,
   };
   ec2.describeInstances(params, (err, data) => {
     if (err) {
       console.log(err, err.stack);
-      return res.status(500).json({ error: true, instances: err.stack });
-    // eslint-disable-next-line brace-style
+      return res.status(500).json({
+        error: true,
+        instances: err.stack
+      });
+      // eslint-disable-next-line brace-style
     } // an error occurred
     else {
       console.log(data); // successful response
-      return res.status(200).json({ error: false, instances: data });
+      return res.status(200).json({
+        error: false,
+        instances: data
+      });
     }
   });
 };
 
+export const getPassword = async (req, res) => {
+  const { instanceid } = req.body;
+  const user = await User.findOne({ instanceid });
+  console.log('user', user);
+  console.log('------------------------===============-----------------------');
+
+  // console.log('accesskey', user.accesskey);
+  // console.log('------------------------===============-----------------------');
+
+  await configureAws(user);
+  const ec2 = new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' });
+
+  const ec2Params = {
+    InstanceId: instanceid
+  };
+    await ec2.getPasswordData(ec2Params).promise().then(data => {
+    console.log('id newUser', user);
+    // const newU = User.findById({_id: newUser._id });
+    // console.log("new user", newU);
+    const key = new NodeRSA(user.instancekey);
+    console.log('key', user.instancekey);
+    const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
+    return res.status(200).json({ error: false, password: decryptedPassword });
+  }).catch(err => {
+    console.error(err, err.stack);
+    return res.status(500).json({
+      error: true,
+      message: err.message
+    });
+  });
+};
+
 export const startInstance = async (req, res) => {
-  const { _id } = req.body;
+  const {
+    _id
+  } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);
   // eslint-disable-next-line no-console
 
   await configureAws(user);
-  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const ec2 = new AWS.EC2({
+    apiVersion: '2016-11-15'
+  });
   const params = {
     InstanceIds: user.instanceid,
     DryRun: true,
@@ -241,7 +271,10 @@ export const startInstance = async (req, res) => {
           console.log('Error', err);
         } else if (data) {
           console.log('Success', data.StartingInstances);
-          return res.status(200).json({ error: false, instance: data });
+          return res.status(200).json({
+            error: false,
+            instance: data
+          });
         }
       });
     } else {
@@ -251,13 +284,17 @@ export const startInstance = async (req, res) => {
 };
 
 export const stopInstance = async (req, res) => {
-  const { _id } = req.body;
+  const {
+    _id
+  } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = await User.findById(userId);
   // eslint-disable-next-line no-console
 
   await configureAws(user);
-  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const ec2 = new AWS.EC2({
+    apiVersion: '2016-11-15'
+  });
   const params = {
     InstanceIds: user.instanceid,
     DryRun: true,
@@ -270,26 +307,39 @@ export const stopInstance = async (req, res) => {
       ec2.stopInstances(params, (err, data) => {
         if (err) {
           console.log('Error', err);
-          return res.status(500).json({ error: true, message: e.message });
+          return res.status(500).json({
+            error: true,
+            message: e.message
+          });
         } else if (data) {
           console.log('Success', data.StoppingInstances);
-          return res.status(200).json({ error: false, message: 'Instance stoped' });
+          return res.status(200).json({
+            error: false,
+            message: 'Instance stoped'
+          });
         }
       });
     } else {
       console.log("You don't have permission to stop instances");
-      return res.status(500).json({ error: true, message: e.message });
+      return res.status(500).json({
+        error: true,
+        message: e.message
+      });
     }
   });
 };
 
 export const rebootInstance = async (req, res) => {
-  const { _id } = req.body;
+  const {
+    _id
+  } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
   const user = User.findById(userId);
 
   configureAws(user);
-  const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
+  const ec2 = new AWS.EC2({
+    apiVersion: '2016-11-15'
+  });
 
   const params = {
     InstanceIds: user.instanceid,
@@ -303,15 +353,24 @@ export const rebootInstance = async (req, res) => {
       ec2.rebootInstances(params, (err, data) => {
         if (err) {
           console.log('Error', err);
-          return res.status(500).json({ error: true, message: e.message });
+          return res.status(500).json({
+            error: true,
+            message: e.message
+          });
         } else if (data) {
           console.log('Success', data);
-          return res.status(200).json({ error: false, instance: data });
+          return res.status(200).json({
+            error: false,
+            instance: data
+          });
         }
       });
     } else {
       console.log("You don't have permission to reboot instances.");
-      return res.status(500).json({ error: true, message: e.message });
+      return res.status(500).json({
+        error: true,
+        message: e.message
+      });
     }
   });
 };

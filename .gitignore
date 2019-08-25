@@ -1,6 +1,11 @@
 #modules
 /node_modules
 
+
 # yarn
 
 yarn.lock
+
+# testing
+
+/testing

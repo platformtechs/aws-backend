@@ -6,7 +6,7 @@ import * as AwsController from './controller';
 const routes = new Router();
 
 routes.post('/aws/create', AwsController.createInstance);
-// routes.post('/aws/describe', AwsController.describeInstances);
+routes.post('/aws/getPass', AwsController.getPassword);
 routes.post('/aws/list', AwsController.listInstances);
 routes.post('/aws/start', AwsController.startInstance);
 routes.post('/aws/stop', AwsController.stopInstance);
