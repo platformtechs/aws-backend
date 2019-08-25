@@ -74,6 +74,7 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
       accesskey: user.accesskey,
       createdby: user.createdby,
       usertype: 'USER',
+      instancekey: null
     });
     const newUser = await tempUser.save();
     console.log('------------------------===============-----------------------');
@@ -106,14 +107,18 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
   console.log('datakey..key.', accessKey);
   console.log('------------------------===============-----------------------');
   console.log('new user id', newUser._id);
-  const NewUser = await User.modifyUser(newUser._id, { instancekey: accessKey });
-console.log('Acess keyb updated User', NewUser);
-    // const NewU = await createKeyPair(newUser);5d624bc6d1004310e2c2e301
+
+  // await User.insert([{hello:'world_safe1'}
+  // , {hello:'world_safe2'}], {w:1}, function(err, result) {
+  // assert.equal(null, err);
+
+  const NewUser = await User.updateUser(newUser._id, { instancekey: accessKey });
+console.log('Access keyPair updated User', NewUser);
 
     // // AMI is amzn-ami-2011.09.1.x86_64-ebs
     // const instanceParams = {
     //   ImageId: 'ami-028b3bf1662e6082f',
-        //   InstanceType: 't2.micro',
+    //   InstanceType: 't2.micro',
     //   KeyName: user.username,
     //   MinCount: 1,
     //   MaxCount: 1,

@@ -29,7 +29,15 @@ const UserSchema = new Schema(
 UserSchema.statics.updateUser = async (id, args) => {
   try {
     console.log('in update');
-    const result = await this.findByIdAndUpdate(id, { $set: { ...args } });
+    console.log('------------------------===============-----------------------');
+
+    console.log('id', id);
+    console.log('------------------------===============-----------------------');
+
+    console.log('args', args);
+    console.log('------------------------===============-----------------------');
+
+    const result = await User.findByIdAndUpdate(id, { $set: { ...args } }, { new: true, upsert: true });
 
     console.log('result', result);
     return result;
