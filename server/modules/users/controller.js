@@ -48,11 +48,7 @@ import User from './model';
 // };
 
 export const createAccesskey = async (req, res) => {
-<<<<<<< HEAD
-  const { accesskey, accessid, createdby, username, password, email } = req.body;
-=======
   const { accesskey, accessid, createdby, username } = req.body;
->>>>>>> e45908ff576559215b735a1d34107ba3ec6217e2
   console.log('create');
   console.log(req.body);
   // const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
@@ -76,17 +72,6 @@ export const createAccesskey = async (req, res) => {
     process.env.JWT_KEY, {
       expiresIn: '30d',
     }
-<<<<<<< HEAD
-    const newUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      username,
-      email,
-      password: hash,
-      accesskey,
-      accessid,
-      createdby,
-      usertype: 'AWSADMIN',
-=======
     );
     return res.status(200).json({
       error: false,
@@ -97,17 +82,12 @@ export const createAccesskey = async (req, res) => {
     return res.status(500).json({
       error: true,
       message: e.message,
->>>>>>> e45908ff576559215b735a1d34107ba3ec6217e2
     });
   }
 };
 
 export const createSubAdmin = async (req, res) => {
-<<<<<<< HEAD
-  const { email, password, createdby, username } = req.body;
-=======
   const { username, email, password, createdby } = req.body;
->>>>>>> e45908ff576559215b735a1d34107ba3ec6217e2
   console.log('create');
   console.log(req.body);
 
@@ -296,13 +276,9 @@ export const modifyUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-<<<<<<< HEAD
-    return res.status(201).json({ error: false, user: await User.findOne({ _id: req.body._id }) });
-=======
     const { username } = req.body;
     const result = await User.deleteOne({ username });
     return res.status(200).json({ error: false, message: 'User deleted', result });
->>>>>>> e45908ff576559215b735a1d34107ba3ec6217e2
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
