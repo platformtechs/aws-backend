@@ -115,24 +115,32 @@ export const createInstance = async (req, res) => { // id:awsadmin , createdby:s
   const NewUser = await User.updateUser(newUser._id, { instancekey: accessKey });
 console.log('Access keyPair updated User', NewUser);
 
-    // // AMI is amzn-ami-2011.09.1.x86_64-ebs
-    // const instanceParams = {
-    //   ImageId: 'ami-028b3bf1662e6082f',
-    //   InstanceType: 't2.micro',
-    //   KeyName: user.username,
-    //   MinCount: 1,
-    //   MaxCount: 1,
-    // };
+    // AMI is amzn-ami-2011.09.1.x86_64-ebs
+    const instanceParams = {
+      ImageId: 'ami-028b3bf1662e6082f',
+      InstanceType: 't2.micro',
+      KeyName: NewUser.username,
+      MinCount: 1,
+      MaxCount: 1,
+    };
 
-    // // Create an EC2 service object
+    // Create an EC2 service object
 
-    // const instance = await ec2.runInstances.runInstances(instanceParams);
-    // const instanceId = instance.Instances[0].InstanceId;
-    // console.log('------------------------===============-----------------------');
-    // console.log('Created instance', instance);
-    // console.log('------------------------===============-----------------------');
-    // console.log('Created instance', instanceId);
-    // const ipAddress = instance.Instances[0].PrivateIpAddress;
+    const instancePromise = await ec2.runInstances(instanceParams).promise().then(data => data).catch(err => {
+      console.error(err, err.stack);
+      return res.status(500).json({ error: true, message: err.message });
+    });
+
+    console.log('------------------------===============-----------------------');
+    console.log('instance data', instancePromise);
+    console.log('------------------------===============-----------------------');
+    const instanceId = instancePromise.Instances[0].InstanceId;
+    console.log('------------------------===============-----------------------');
+
+    console.log("Created instance", instanceId);
+    console.log('------------------------===============-----------------------');
+    const ipAddress = instancePromise.Instances[0].PrivateIpAddress;
+
     // const ec2Params = {
     //   InstanceId: instanceId
     // };
@@ -148,10 +156,10 @@ console.log('Access keyPair updated User', NewUser);
     //       console.log('key', NewU.instancekey);
     //       const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
     //       // const decryptedPassword = getPassword.GetDecryptedPassword(data.PasswordData);
-    //       return res.status(200).json({ error: false, instanceId, ipAddress, username: NewU.username, password: decryptedPassword });
     //   }
     //  });
 
+     return res.status(200).json({ error: false, instanceId, ipAddress, username: NewUser.username, password });
     }).catch(err => {
       console.error(err, err.stack);
       return res.status(500).json({ error: true, message: err.message });
