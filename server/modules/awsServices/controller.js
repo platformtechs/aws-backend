@@ -12,8 +12,11 @@ import AWS, {
 } from 'aws-sdk';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-import NodeRSA from 'node-rsa';
+// import NodeRSA from 'node-rsa';
+import ursa from 'ursa';
 import User from '../users/model';
+import fs from 'fs';
+
 // eslint-disable-next-line no-return-assign
 const configureAws = (user) =>
   AWS.config = new AWS.Config({
@@ -24,8 +27,20 @@ const configureAws = (user) =>
 
 export const createInstance = async (req, res) => {
   const {
-    adminId
+    adminId,
+    os,
+    instanceType,
+    username
   } = req.body;
+
+  let oldUser = await User.findOne({username})
+  if (oldUser) {
+    return res.status(500).json({
+      error: true,
+      message: "user already exist"
+    })
+  }
+
   const user = await User.findById(adminId);
   console.log('user', user);
   console.log('------------------------===============-----------------------');
@@ -48,14 +63,16 @@ export const createInstance = async (req, res) => {
     }
     const tempUser = new User({
       _id: new mongoose.Types.ObjectId(),
-      username: user.username,
+      username: username,
+      panelpass:password,
       email: user.email,
       password: hash,
-      accessid: user.accessid,
-      accesskey: user.accesskey,
+      awsadminid:adminId,
       createdby: user.createdby,
       usertype: 'USER',
-      instancekey: null
+      instancekey: "",
+      instanceid:"",
+      instancetype:instanceType
     });
     const newUser = await tempUser.save();
     console.log('------------------------===============-----------------------');
@@ -76,41 +93,25 @@ export const createInstance = async (req, res) => {
     });
     console.log('------------------------===============-----------------------');
     const keyData = JSON.stringify(key);
-    console.log('------------------------===============-----------------------');
     console.log('key', keyData);
+    fs.writeFileSync(`./Keys/${username}.pem`, key.KeyMaterial, 'utf-8')
+    fs.writeFileSync(`./Keys/${username}-all.pem`, JSON.stringify(key), 'utf-8')
     const accessKey = key.KeyMaterial;
     console.log('------------------------===============-----------------------');
-
-    console.log('Data Key', key.KeyMaterial);
-    console.log('------------------------===============-----------------------');
-    console.log('------------------------===============-----------------------');
-
-    console.log('newUser name', newUser.username);
-    console.log('------------------------===============-----------------------');
-
     console.log('datakey..key.', accessKey);
-    console.log('------------------------===============-----------------------');
-    console.log('new user id', newUser._id);
-
-    // await User.insert([{hello:'world_safe1'}
-    // , {hello:'world_safe2'}], {w:1}, function(err, result) {
-    // assert.equal(null, err);
-
-    const NewUser = await User.updateUser(newUser._id, {
+    const newUser1 = await User.updateUser(newUser._id, {
       instancekey: accessKey
     });
-    console.log('Access keyPair updated User', NewUser);
+    console.log('------------------------===============-----------------------');
+    console.log('Access keyPair updated User', newUser1);
 
-    // AMI is amzn-ami-2011.09.1.x86_64-ebs
     const instanceParams = {
-      ImageId: 'ami-028b3bf1662e6082f',
-      InstanceType: 't2.micro',
-      KeyName: NewUser.username,
+      ImageId: os,
+      InstanceType: instanceType,
+      KeyName: newUser1.username,
       MinCount: 1,
       MaxCount: 1,
     };
-
-    // Create an EC2 service object
 
     const instancePromise = await ec2.runInstances(instanceParams).promise().then(data => data).catch(err => {
       console.error(err, err.stack);
@@ -119,27 +120,46 @@ export const createInstance = async (req, res) => {
         message: err.message
       });
     });
-
     console.log('------------------------===============-----------------------');
     console.log('instance data', instancePromise);
     console.log('------------------------===============-----------------------');
-    const instanceid = instancePromise.Instances[0].InstanceId;
+      const instanceid = instancePromise.Instances[0].InstanceId;
     console.log('------------------------===============-----------------------');
-
     console.log("Created instance", instanceid);
     console.log('------------------------===============-----------------------');
-    const ipAddress = instancePromise.Instances[0].PrivateIpAddress;
-    const NewU = await User.updateUser(NewUser._id, {
-      instanceid
+      const ipAddress = instancePromise.Instances[0].PrivateIpAddress;
+    const newUser2 = await User.updateUser(newUser1._id, {
+      instanceid,
+      instanceip:ipAddress,
+      instancestatus:"running"
     });
-    console.log('updated User', NewU);
+     console.log('updated User', newUser2);
+    console.log('------------------------===============-----------------------');
+  const  tagParams = {
+      Resources: [instanceid],
+      Tags: [{
+        Key: 'Name',
+        Value: username
+      }]
+    };
+    const tagPromise = ec2.createTags(tagParams).promise().then(data=>data).catch(err=>console.log("err",err))
+    console.log("tags", tagPromise)
+    console.log('------------------------===============-----------------------');
+  
+    // console.log('------------------------===============-----------------------');
 
+    
+    // console.log('------------------------===============-----------------------');
+    let response = {
+      instanceid,
+      adminid:adminId,
+      ipAddress,
+      username,
+      password
+    }
     return res.status(200).json({
       error: false,
-      instanceid,
-      ipAddress,
-      username: NewU.username,
-      password
+      result: response
     });
   }).catch(err => {
     console.error(err, err.stack);
@@ -183,7 +203,7 @@ export const listInstances = async (req, res) => {
     _id
   } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
-  const user = await User.findById(userId);
+  const user = await User.find(createdby);
   const instanceId = user.map(_ => _.instanceid);
   console.log('user', user);
 
@@ -214,51 +234,75 @@ export const listInstances = async (req, res) => {
 };
 
 export const getPassword = async (req, res) => {
-  const { instanceid } = req.body;
+  try{
+  const { instanceid, _id } = req.body;
   const user = await User.findOne({ instanceid });
+  const user1 = await User.findOne({ _id });
   console.log('user', user);
   console.log('------------------------===============-----------------------');
 
   // console.log('accesskey', user.accesskey);
   // console.log('------------------------===============-----------------------');
 
-  await configureAws(user);
+  await configureAws(user1);
+  console.log(user1)
   const ec2 = new EC2({ apiVersion: '2016-11-15', region: 'ap-south-1' });
 
   const ec2Params = {
-    InstanceId: instanceid
+    InstanceId: instanceid,
+    DryRun:true
   };
-    await ec2.getPasswordData(ec2Params).promise().then(data => {
-    console.log('id newUser', user);
-    // const newU = User.findById({_id: newUser._id });
-    // console.log("new user", newU);
-    const key = new NodeRSA(user.instancekey);
-    console.log('key', user.instancekey);
-    const decryptedPassword = key.decrypt(data.PasswordData, 'utf8');
-    return res.status(200).json({ error: false, password: decryptedPassword });
-  }).catch(err => {
+  // fs.writeFileSync('./Keys/test.pem', user.instancekey, 'base64')
+  const pem = fs.readFileSync(`./Keys/${user.username}.pem`);
+  console.log("user", user.username)
+  const pkey = ursa.createPrivateKey(pem);
+  console.log("=====================")
+  console.log("pkey created")
+  ec2.getPasswordData(ec2Params, (err, data)=>{
+    if (err && err.code === 'DryRunOperation') {
+      ec2Params.DryRun = false
+      ec2.getPasswordData(ec2Params, (err, data)=>{
+        if (err) {
+          console.log("err", err)
+        }
+        const password = pkey.decrypt(data.PasswordData, 'base64', 'utf8', ursa.RSA_PKCS1_PADDING);
+        User.updateUser(user._id, {
+            instancepass:password
+        })
+        return res.status(200).json({
+          error: false,
+          password
+        });
+      })
+    } else {
+      console.log("no permission")
+    }
+  })
+}catch(err){
     console.error(err, err.stack);
     return res.status(500).json({
       error: true,
       message: err.message
     });
-  });
+  };
 };
 
 export const startInstance = async (req, res) => {
   const {
-    _id
+    _id,
+    instanceid
   } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
-  const user = await User.findById(userId);
+  const user = await User.findOne({instanceid})
+  const user1 = await User.findOne({_id : user.awsadminid});
   // eslint-disable-next-line no-console
 
-  await configureAws(user);
+  await configureAws(user1);
   const ec2 = new AWS.EC2({
     apiVersion: '2016-11-15'
   });
   const params = {
-    InstanceIds: user.instanceid,
+    InstanceIds: [user.instanceid],
     DryRun: true,
   };
 
@@ -271,6 +315,7 @@ export const startInstance = async (req, res) => {
           console.log('Error', err);
         } else if (data) {
           console.log('Success', data.StartingInstances);
+          User.updateUser(user._id, {instancestatus:"running"})
           return res.status(200).json({
             error: false,
             instance: data
@@ -285,18 +330,21 @@ export const startInstance = async (req, res) => {
 
 export const stopInstance = async (req, res) => {
   const {
-    _id
+    _id,
+    instanceid
   } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
-  const user = await User.findById(userId);
+  const user = await User.findOne({instanceid});
+  console.log("user",user)
+  const user1 = await User.findOne({_id: user.awsadminid});
   // eslint-disable-next-line no-console
-
-  await configureAws(user);
+console.log("user1", user1)
+  await configureAws(user1);
   const ec2 = new AWS.EC2({
     apiVersion: '2016-11-15'
   });
   const params = {
-    InstanceIds: user.instanceid,
+    InstanceIds: [user.instanceid],
     DryRun: true,
   };
 
@@ -309,10 +357,11 @@ export const stopInstance = async (req, res) => {
           console.log('Error', err);
           return res.status(500).json({
             error: true,
-            message: e.message
+            message: err.message
           });
         } else if (data) {
           console.log('Success', data.StoppingInstances);
+          User.updateUser(user._id,{instancestatus:"stopped"})
           return res.status(200).json({
             error: false,
             message: 'Instance stoped'
@@ -323,7 +372,7 @@ export const stopInstance = async (req, res) => {
       console.log("You don't have permission to stop instances");
       return res.status(500).json({
         error: true,
-        message: e.message
+        message: err.message
       });
     }
   });
@@ -331,18 +380,21 @@ export const stopInstance = async (req, res) => {
 
 export const rebootInstance = async (req, res) => {
   const {
-    _id
+    _id,
+    instanceid
   } = req.body;
   const userId = mongoose.Types.ObjectId(_id);
-  const user = User.findById(userId);
+  const user = await User.findOne({instanceid})
+  const user1 = await User.findOne({_id : user.awsadminid});
+  console.log(user1.accesskey)
 
-  configureAws(user);
+  configureAws(user1);
   const ec2 = new AWS.EC2({
     apiVersion: '2016-11-15'
   });
 
   const params = {
-    InstanceIds: user.instanceid,
+    InstanceIds: [user.instanceid],
     DryRun: true,
   };
 
@@ -355,10 +407,11 @@ export const rebootInstance = async (req, res) => {
           console.log('Error', err);
           return res.status(500).json({
             error: true,
-            message: e.message
+            message: err.message
           });
         } else if (data) {
           console.log('Success', data);
+          User.updateUser(user._id, {instancestatus:"running"})
           return res.status(200).json({
             error: false,
             instance: data
@@ -369,7 +422,58 @@ export const rebootInstance = async (req, res) => {
       console.log("You don't have permission to reboot instances.");
       return res.status(500).json({
         error: true,
-        message: e.message
+        message: err.message
+      });
+    }
+  });
+};
+
+export const terminateInstance = async (req, res) => {
+  const {
+    _id,
+    instanceid
+  } = req.body;
+  const userId = mongoose.Types.ObjectId(_id);
+  const user = await User.findOne({
+    instanceid
+  })
+  const user1 = await User.findOne({_id : user.awsadminid});
+
+  configureAws(user1);
+  const ec2 = new AWS.EC2({
+    apiVersion: '2016-11-15'
+  });
+
+  const params = {
+    InstanceIds: [user.instanceid],
+    DryRun: true,
+  };
+
+  // Call EC2 to reboot instances
+  ec2.terminateInstances(params, (err, data) => {
+    if (err && err.code === 'DryRunOperation') {
+      params.DryRun = false;
+      ec2.terminateInstances(params, (err, data) => {
+        if (err) {
+          console.log('Error', err);
+          return res.status(500).json({
+            error: true,
+            message: err.message
+          });
+        } else if (data) {
+          console.log('Success', data);
+          User.deleteOne({instanceid})
+          return res.status(200).json({
+            error: false,
+            instance: data
+          });
+        }
+      });
+    } else {
+      console.log("You don't have permission to reboot instances.");
+      return res.status(500).json({
+        error: true,
+        message: err.message
       });
     }
   });

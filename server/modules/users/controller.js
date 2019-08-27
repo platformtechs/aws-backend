@@ -51,6 +51,14 @@ export const createAccesskey = async (req, res) => {
   const { accesskey, accessid, createdby, username } = req.body;
   console.log('create');
   console.log(req.body);
+
+  let oldUser = await User.findOne({username})
+  if (oldUser) {
+    return res.status(500).json({
+      error: true,
+      message: "user already exist"
+    })
+  }
   // const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
   // console.log(password);
   console.log('------------------------===============-----------------------');
@@ -90,6 +98,14 @@ export const createSubAdmin = async (req, res) => {
   const { username, email, password, createdby } = req.body;
   console.log('create');
   console.log(req.body);
+  
+  let oldUser = await User.findOne({username})
+  if (oldUser) {
+    return res.status(500).json({
+      error: true,
+      message: "user already exist"
+    })
+  }
 
   bcrypt.hash(password, 10, async (err, hash) => {
     if (err) {
@@ -102,6 +118,7 @@ export const createSubAdmin = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       username,
       email,
+      panelpass:password,
       password: hash,
       createdby,
       usertype: 'SUBADMIN',
@@ -203,6 +220,14 @@ export const createAdmin = async (req, res) => {
   console.log('create');
   console.log(req.body);
 
+  let oldUser = await User.findOne({username})
+  if (oldUser) {
+    return res.status(500).json({
+      error: true,
+      message: "user already exist"
+    })
+  }
+
   bcrypt.hash(password, 10, async (err, hash) => {
     if (err) {
       return res.status(500).json({
@@ -210,6 +235,7 @@ export const createAdmin = async (req, res) => {
         message: err,
       });
     }
+    
     const newUser = new User({
       _id: new mongoose.Types.ObjectId(),
       username,
@@ -258,6 +284,7 @@ export const updateUser = async (req, res) => {
     return res.status(500).json({ error: true, message: e.message });
   }
 };
+
 export const modifyUser = async (req, res) => {
   try {
     const { UserName } = req.query;
@@ -286,7 +313,8 @@ export const deleteUser = async (req, res) => {
 
 export const getUser = async (req, res) => {
   try {
-    return res.status(201).json({ error: false, user: await User.findOne({ username: req.body.username }) });
+    const userId = mongoose.Types.ObjectId(req.body._id)
+    return res.status(201).json({ error: false, user: await User.findById(userId)});
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
@@ -307,7 +335,7 @@ export const listUser = async (req, res) => {
       $and: [
         { createdby: _id }, { usertype },
       ],
-    }, {"username":1, "email":1, "isdeactivated":1, "accessid":1} );
+    });
     return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
