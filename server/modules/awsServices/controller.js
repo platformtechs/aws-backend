@@ -258,7 +258,8 @@ export const getInstance = async (req, res) => {
         });
       } else {
         console.log(data); // successful response
-        let instance = data.Reservations.Instances[0]
+        let instance = data.Reservations[0].Instances[0]
+        console.log("instance", instance)
         return res.status(201).json({
           error: false,
           result:instance
