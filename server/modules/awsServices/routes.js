@@ -12,4 +12,6 @@ routes.post('/aws/start', AwsController.startInstance);
 routes.post('/aws/stop', AwsController.stopInstance);
 routes.post('/aws/reboot', AwsController.rebootInstance);
 routes.post('/aws/delete', AwsController.terminateInstance);
+routes.post('/aws/getinstance', AwsController.getInstance);
+routes.post('/aws/listinstance', AwsController.listInstances)
 export default routes;

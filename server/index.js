@@ -1,5 +1,8 @@
 /* eslint-disable no-console */
 import http from 'http';
+import dotenv from 'dotenv';
+
+dotenv.config({ debug: process.env.DEBUG });
 
 import app from './app';
 

@@ -1,6 +1,0 @@
-{
-    "env": {
-             "MONGO_PASS": "user123",
-             "JWT_KEY":"TipTopTutrCode"
-           }
-}

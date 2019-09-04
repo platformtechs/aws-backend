@@ -26,218 +26,258 @@ const configureAws = (user) =>
   });
 
 export const createInstance = async (req, res) => {
-  const {
-    adminId,
-    os,
-    instanceType,
-    username
-  } = req.body;
-
-  let oldUser = await User.findOne({username})
-  if (oldUser) {
-    return res.status(500).json({
-      error: true,
-      message: "user already exist"
-    })
-  }
-
-  const user = await User.findById(adminId);
-  console.log('user', user);
-  console.log('------------------------===============-----------------------');
-
-  console.log('accesskey', user.accesskey);
-  console.log('------------------------===============-----------------------');
-
-  await configureAws(user);
-  const ec2 = new EC2({
-    apiVersion: '2016-11-15',
-    region: 'ap-south-1'
-  });
-  const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
-  bcrypt.hash(password, 10, async (err, hash) => {
-    if (err) {
-      return res.status(500).json({
-        error: true,
-        message: err,
-      });
-    }
-    const tempUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      username: username,
-      panelpass:password,
-      email: user.email,
-      password: hash,
-      awsadminid:adminId,
-      createdby: user.createdby,
-      usertype: 'USER',
-      instancekey: "",
-      instanceid:"",
-      instancetype:instanceType
-    });
-    const newUser = await tempUser.save();
-    console.log('------------------------===============-----------------------');
-
-    console.log('newUser', newUser);
-    console.log('------------------------===============-----------------------');
-    const keyPairParams = {
-      KeyName: newUser.username,
-    };
-    console.log('newUser name', newUser.username);
-
-    const key = await ec2.createKeyPair(keyPairParams).promise().then(data => data).catch(err => {
-      console.error(err, err.stack);
-      return res.status(500).json({
-        error: true,
-        message: err.message
-      });
-    });
-    console.log('------------------------===============-----------------------');
-    const keyData = JSON.stringify(key);
-    console.log('key', keyData);
-    fs.writeFileSync(`./Keys/${username}.pem`, key.KeyMaterial, 'utf-8')
-    fs.writeFileSync(`./Keys/${username}-all.pem`, JSON.stringify(key), 'utf-8')
-    const accessKey = key.KeyMaterial;
-    console.log('------------------------===============-----------------------');
-    console.log('datakey..key.', accessKey);
-    const newUser1 = await User.updateUser(newUser._id, {
-      instancekey: accessKey
-    });
-    console.log('------------------------===============-----------------------');
-    console.log('Access keyPair updated User', newUser1);
-
-    const instanceParams = {
-      ImageId: os,
-      InstanceType: instanceType,
-      KeyName: newUser1.username,
-      MinCount: 1,
-      MaxCount: 1,
-    };
-
-    const instancePromise = await ec2.runInstances(instanceParams).promise().then(data => data).catch(err => {
-      console.error(err, err.stack);
-      return res.status(500).json({
-        error: true,
-        message: err.message
-      });
-    });
-    console.log('------------------------===============-----------------------');
-    console.log('instance data', instancePromise);
-    console.log('------------------------===============-----------------------');
-      const instanceid = instancePromise.Instances[0].InstanceId;
-    console.log('------------------------===============-----------------------');
-    console.log("Created instance", instanceid);
-    console.log('------------------------===============-----------------------');
-      const ipAddress = instancePromise.Instances[0].PrivateIpAddress;
-    const newUser2 = await User.updateUser(newUser1._id, {
-      instanceid,
-      instanceip:ipAddress,
-      instancestatus:"running"
-    });
-     console.log('updated User', newUser2);
-    console.log('------------------------===============-----------------------');
-  const  tagParams = {
-      Resources: [instanceid],
-      Tags: [{
-        Key: 'Name',
-        Value: username
-      }]
-    };
-    const tagPromise = ec2.createTags(tagParams).promise().then(data=>data).catch(err=>console.log("err",err))
-    console.log("tags", tagPromise)
-    console.log('------------------------===============-----------------------');
-  
-    // console.log('------------------------===============-----------------------');
-
-    
-    // console.log('------------------------===============-----------------------');
-    let response = {
-      instanceid,
-      adminid:adminId,
-      ipAddress,
+  try{
+    const {
+      adminId,
+      os,
+      instanceType,
       username,
-      password
+      days
+    } = req.body;
+    let oldUser = await User.findOne({
+      username
+    })
+    if (oldUser) {
+      return res.status(500).json({
+        error: true,
+        message: "user already exist"
+      })
     }
-    return res.status(200).json({
-      error: false,
-      result: response
+    const user = await User.findById(adminId);
+    console.log('user', user);
+    console.log('------------------------===============-----------------------');
+
+    console.log('accesskey', user.accesskey);
+    console.log('------------------------===============-----------------------');
+
+    await configureAws(user);
+
+    const ec2 = new EC2({
+      apiVersion: '2016-11-15',
+      region: 'ap-south-1'
     });
-  }).catch(err => {
-    console.error(err, err.stack);
+
+    const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+
+    bcrypt.hash(password, 10, async (err, hash) => {
+      if (err) {
+        return res.status(500).json({
+          error: true,
+          message: err,
+        });
+      }
+      let dateObj = new Date()
+      dateObj.setDate(dateObj.getDate() + Number(days))
+      let dateData = dateObj.toLocaleDateString()
+      const tempUser = new User({
+        _id: new mongoose.Types.ObjectId(),
+        username: username,
+        panelpass:password,
+        email: user.email,
+        password: hash,
+        awsadminid:adminId,
+        createdby: user.createdby,
+        usertype: 'USER',
+        instancekey: "",
+        instanceid:"",
+        instancetype:instanceType,
+        expiredat:dateData
+      });
+      const newUser = await tempUser.save();
+      console.log('------------------------===============-----------------------');
+      console.log('newUser', newUser);
+      console.log('------------------------===============-----------------------');
+        const keyPairParams = {
+          KeyName: newUser.username,
+        };
+        console.log('newUser name', newUser.username);
+        const key = await ec2.createKeyPair(keyPairParams).promise().then(data => data).catch(err => {
+          console.error(err, err.stack);
+          return res.status(500).json({
+            error: true,
+            message: err.message
+          });
+        });
+        console.log('------------------------===============-----------------------');
+        const keyData = JSON.stringify(key);
+        console.log('key', keyData);
+        fs.writeFileSync(`./Keys/${username}.pem`, key.KeyMaterial, 'utf-8')
+        fs.writeFileSync(`./Keys/${username}-all.pem`, JSON.stringify(key), 'utf-8')
+        const accessKey = key.KeyMaterial;
+        console.log('------------------------===============-----------------------');
+        console.log('datakey..key.', accessKey);
+        const newUser1 = await User.updateUser(newUser._id, {
+          instancekey: accessKey
+        });
+        console.log('------------------------===============-----------------------');
+        console.log('Access keyPair updated User', newUser1);
+      
+        const instanceParams = {
+          ImageId: os,
+          InstanceType: instanceType,
+          KeyName: newUser1.username,
+          MinCount: 1,
+          MaxCount: 1,
+        };
+      
+        const instancePromise = await ec2.runInstances(instanceParams).promise().then(data => data).catch(err => {
+          console.error(err, err.stack);
+          return res.status(500).json({
+            error: true,
+            message: err.message
+          });
+        });
+        console.log('------------------------===============-----------------------');
+        console.log('instance data', instancePromise);
+        console.log('------------------------===============-----------------------');
+          const instanceid = instancePromise.Instances[0].InstanceId;
+        console.log('------------------------===============-----------------------');
+        console.log("Created instance", instanceid);
+        console.log('------------------------===============-----------------------');
+          const ipAddress = instancePromise.Instances[0].PublicIpAddress;
+        const newUser2 = await User.updateUser(newUser1._id, {
+          instanceid,
+          instanceip:ipAddress,
+          instancestatus:"running"
+        });
+         console.log('updated User', newUser2);
+        console.log('------------------------===============-----------------------');
+      const  tagParams = {
+          Resources: [instanceid],
+          Tags: [{
+            Key: 'Name',
+            Value: username
+          }]
+        };
+        const tagPromise = await ec2.createTags(tagParams).promise().then(data=>data).catch(err=>console.log("err",err))
+        console.log("tags", tagPromise)
+        console.log('------------------------===============-----------------------');
+      
+        // console.log('------------------------===============-----------------------');
+      
+        
+        // console.log('------------------------===============-----------------------');
+        let response = {
+          instanceid,
+          adminid:adminId,
+          ipAddress,
+          username,
+          password
+        }
+        return res.status(200).json({
+          error: false,
+          result: response
+        });
+      }).catch(err => {
+        console.error(err, err.stack);
+        return res.status(500).json({
+          error: true,
+          message: err.message
+        });
+      });
+  } catch (err) {
+    console.error("err", err);
     return res.status(500).json({
       error: true,
       message: err.message
     });
-  });
+  }
 };
 
-// export const describeInstances = async (req, res) => {
-//   const { _id } = req.body;
-//   const userId = mongoose.Types.ObjectId(_id);
-//   const user = await User.findById(userId);
-//   console.log('user', user);
-//   console.log('accesskey', user.accesskey);
-
-//   // if (user.usertype === 'ADMIN' || user.usertype === 'SUBADMIN') {
-//   await configureAws(user);
-//   const ec2 = new AWS.EC2({ apiVersion: '2016-11-15' });
-
-//   const params = {
-//     DryRun: false,
-//   };
-
-//     // Call EC2 to retrieve policy for selected bucket
-//   ec2.describeInstances(params, (err, data) => {
-//     if (err) {
-//       console.log('Error', err.stack);
-//       return res.status(500).json({ error: true, message: err.message });
-//     } else {
-//       console.log('Success', JSON.stringify(data));
-//       return res.status(200).json({ error: false, instances: data });
-//     }
-//   });
-//   // }
-// };
 
 export const listInstances = async (req, res) => {
-  const {
-    _id
-  } = req.body;
-  const userId = mongoose.Types.ObjectId(_id);
-  const user = await User.find(createdby);
-  const instanceId = user.map(_ => _.instanceid);
-  console.log('user', user);
-
-  await configureAws(user);
-  const ec2 = new AWS.EC2({
-    apiVersion: '2016-11-15'
-  });
-  const params = {
-    InstanceIds: instanceId,
-  };
-  ec2.describeInstances(params, (err, data) => {
-    if (err) {
-      console.log(err, err.stack);
-      return res.status(500).json({
-        error: true,
-        instances: err.stack
+  try {
+    const {
+      _id,
+      usertype
+    } = req.body;
+    let result = [];
+    const userId = mongoose.Types.ObjectId(_id);
+    if(usertype === "SUBADMIN"){
+      let createdby = await User.find({ $and:[{createdby: userId}, {usertype:"USER"}]});
+      let awsAdmin = createdby.map(_=>_.awsadminid)
+      let awsAdminSet = [...new Set(awsAdmin)]
+      awsAdminSet.forEach( async el => {
+        const user = await User.find({_id:el});
+        await configureAws(user);
+        const ec2 = new AWS.EC2({
+          apiVersion: '2016-11-15'
+        });
+        let user1 = await User.find({awsadminid:el})
+        let instanceId = user1.map(_=>_.instanceid)
+        const params = {
+          InstanceIds: instanceId,
+        };
+        ec2.describeInstances(params, (err, data) => {
+          if (err) {
+            console.log(err, err.stack);
+            return res.status(500).json({
+              error: true,
+              instances: err.stack
+            });
+          } else {
+            console.log(data); // successful response
+            result.push(...data)
+          }
+        });
       });
-      // eslint-disable-next-line brace-style
-    } // an error occurred
-    else {
-      console.log(data); // successful response
       return res.status(200).json({
         error: false,
-        instances: data
+        result
       });
-    }
-  });
-};
+    } 
+  }catch (err) {
+    return res.status(500).json({
+      error: true,
+      message: err.message
+    });
+  }
+}
+
+export const getInstance = async (req, res) => {
+  try {
+    let {instanceid} = req.body;
+    const user = await User.findOne({instanceid})
+  const user1 = await User.findOne({_id : user.awsadminid});
+    console.log("user", user)
+    console.log("========================")
+    console.log("user1", user1)
+    await configureAws(user1);
+    const ec2 = new AWS.EC2({
+      apiVersion: '2016-11-15'
+    });
+    const params = {
+      InstanceIds: [instanceid],
+    };
+    ec2.describeInstances(params, (err, data) => {
+      if (err) {
+        console.log(err, err.stack);
+        return res.status(500).json({
+          error: true,
+          instances: err.stack
+        });
+      } else {
+        console.log(data); // successful response
+        let instance = data.Reservations.Instances[0]
+        return res.status(201).json({
+          error: false,
+          result:instance
+        });
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: true,
+      message: err.message
+    });
+  }
+}
 
 export const getPassword = async (req, res) => {
   try{
   const { instanceid, _id } = req.body;
   const user = await User.findOne({ instanceid });
-  const user1 = await User.findOne({ _id });
+  const user1 = await User.findOne({ _id: user.awsadminid });
   console.log('user', user);
   console.log('------------------------===============-----------------------');
 
@@ -261,12 +301,12 @@ export const getPassword = async (req, res) => {
   ec2.getPasswordData(ec2Params, (err, data)=>{
     if (err && err.code === 'DryRunOperation') {
       ec2Params.DryRun = false
-      ec2.getPasswordData(ec2Params, (err, data)=>{
+      ec2.getPasswordData(ec2Params, async (err, data)=>{
         if (err) {
           console.log("err", err)
         }
         const password = pkey.decrypt(data.PasswordData, 'base64', 'utf8', ursa.RSA_PKCS1_PADDING);
-        User.updateUser(user._id, {
+        let {result} = await User.updateUser(user._id, {
             instancepass:password
         })
         return res.status(200).json({
@@ -276,6 +316,10 @@ export const getPassword = async (req, res) => {
       })
     } else {
       console.log("no permission")
+      return res.status(500).json({
+        error: true,
+        message: err.message
+      });
     }
   })
 }catch(err){

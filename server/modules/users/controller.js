@@ -183,7 +183,7 @@ export const login = async (req, res) => {
             expiresIn: '30d',
           }
         );
-
+        
         const { email, usertype, _id } = user;
 
         const response = {
@@ -215,11 +215,73 @@ export const login = async (req, res) => {
   }
 };
 
+export const changePass = async (req, res) => {
+  const {oldPassword, password, _id} = req.body;
+  try {
+    const userId = mongoose.Types.ObjectId(_id);
+    const user = await User.findById(userId)
+    console.log("user", user);
+    bcrypt.compare(oldPassword, user.password, (err, result)=>{
+      if(err){
+        console.log("err", err)
+        return res.status(401).json({
+          error: true,
+          message: 'Auth failed',
+        });
+      }
+      console.log(result);
+      if (!result) {
+        console.log('inside');
+        return res.status(401).json({
+          error: true,
+          message: 'Auth failed',
+        });
+      }
+      bcrypt.hash(password, 10, async (err, hash) => {
+        try {
+          if (err) {
+            return res.status(401).json({
+            error: true,
+            message: 'Auth failed',
+          })
+        }
+          let data = {password:hash}
+          let {result} = await User.updateUser(userId, data);
+          const loginToken = jwt.sign({
+              username: user.username,
+              userId: user._id,
+            },
+            process.env.JWT_KEY, {
+              expiresIn: '30d',
+            }
+          );
+          return res.status(200).json({
+            error: false,
+            message: 'Auth successful',
+            token: loginToken,
+          });
+        } catch (error) {
+          return res.status(401).json({
+            error: true,
+            message: 'Auth failed',
+          })
+        }
+      })
+    })
+  } catch (error) {
+    console.log('err', error);
+    return res.status(401).json({
+      error: true,
+      message: 'error',
+    });
+  }
+}
+
 export const createAdmin = async (req, res) => {
+  try {
   const { username, email, password } = req.body;
   console.log('create');
   console.log(req.body);
-
   let oldUser = await User.findOne({username})
   if (oldUser) {
     return res.status(500).json({
@@ -235,7 +297,7 @@ export const createAdmin = async (req, res) => {
         message: err,
       });
     }
-    
+
     const newUser = new User({
       _id: new mongoose.Types.ObjectId(),
       username,
@@ -245,28 +307,42 @@ export const createAdmin = async (req, res) => {
     });
     try {
       const data = await newUser.save();
-      const signupToken = jwt.sign(
-        {
+      const signupToken = jwt.sign({
           username: data.username,
           userId: data._id,
         },
-        process.env.JWT_KEY,
-        {
+        process.env.JWT_KEY, {
           expiresIn: '30d',
         }
       );
-      const { _id, usertype } = data;
+      const {
+        _id,
+        usertype
+      } = data;
       const response = {
         _id,
         username,
         email,
         usertype,
       };
-      return res.status(200).json({ error: false, user: response, token: signupToken });
+      return res.status(200).json({
+        error: false,
+        user: response,
+        token: signupToken
+      });
     } catch (e) {
-      return res.status(500).json({ error: true, message: e.message });
+      return res.status(500).json({
+        error: true,
+        message: e.message
+      });
     }
   });
+  } catch (error) {
+    return res.status(500).json({
+      error: true,
+      message: e.message
+    });
+  }
 };
 
 export const updateUser = async (req, res) => {
@@ -300,6 +376,26 @@ export const modifyUser = async (req, res) => {
     return res.status(500).json({ error: true, message: e.message });
   }
 };
+
+export const renewUser = async (req, res) => {
+  try {
+    console.log("renew")
+    const {_id, days} = req.body
+    const userId = mongoose.Types.ObjectId(_id);
+    const user = await User.findById(userId);
+    console.log("user", user)
+    let dateObj = new Date()
+    let dateDB = new Date(user.expiredat)
+    dateObj.setDate(dateDB.getDate() + Number(days))
+    let dateData = dateObj.toLocaleDateString()
+    console.log("expiredAt", dateData)
+    let data = {expiredat:dateData}
+    let {result} = await User.updateUser(userId, data);
+    return res.status(201).json({ error: false, message: 'user updated' });
+  } catch (e) {
+    return res.status(500).json({ error: true, message: e.message });
+  }
+}
 
 export const deleteUser = async (req, res) => {
   try {

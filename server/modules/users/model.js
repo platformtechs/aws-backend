@@ -22,7 +22,7 @@ const UserSchema = new Schema(
     instanceip:String,
     panelpass: String,
     instancepass:String,
-    expiredat:String,
+    expiredat:Date,
     instancestatus:String,
     isdeactivated: {
       type:String,
@@ -32,6 +32,12 @@ const UserSchema = new Schema(
   },
   { timestamps: true }
 );
+
+function getdates (){
+  let dateObj = new Date();
+  let date = dateObj.getDate()
+  return date
+}
 
 UserSchema.statics.updateUser = async (id, args) => {
   try {

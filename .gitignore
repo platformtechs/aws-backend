@@ -1,6 +1,6 @@
 #modules
 /node_modules
-
+htcvpsterminator.pem
 
 # yarn
 
@@ -9,3 +9,8 @@ yarn.lock
 # testing
 
 /testing
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
