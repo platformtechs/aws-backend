@@ -418,39 +418,42 @@ export const getUser = async (req, res) => {
   }
 };
 
-// export const isActivate = async (req, res) => {
-//   try {
-//     const { _id } = req.body;
-//     const user = await User.findById({ _id });
-//     console.log(user);
-//     if (user.isactivated){
-//       return res.status(200).json({ error: false, message: 'Users', user });
-//     }
-//     else{
+export const isActivate = async (req, res) => {
+  try {
+    const { _id } = req.body;
+    const user = await User.findById({ _id });
+    console.log(user);
+    if (user.isactivated){
+      return res.status(200).json({ error: false, message: 'Users', isactivated: true });
+    }
+    return res.status(200).json({ error: false, message: 'Users', isactivated: false });
+  } catch (e) {
+    return res.status(500).json({ error: true, message: e.message });
+  }
+};
 
-//     }
-//   } catch (e) {
-//     return res.status(500).json({ error: true, message: e.message });
-//   }
-// };
-// export const getAllUser = async (req, res) => {
-//   try {
-//     return res.status(200).json({ allUser: await User.find() });
-//   } catch (e) {
-//     return res.status(500).json({ error: true, message: e.message });
-//   }
-// };
+export const getAllUser = async (req, res) => {
+  try {
+    return res.status(200).json({ allUser: await User.find() });
+  } catch (e) {
+    return res.status(500).json({ error: true, message: e.message });
+  }
+};
 
 export const listUser = async (req, res) => {
   try {
-    const { _id, usertype } = req.body;
+    const { createdby, usertype } = req.body;
     const result = await User.find({
       $and: [
-        { createdby: _id }, { usertype },
+        { createdby }, { usertype },
       ],
+    }).toArray((err, results) => {
+      if(err){
+        return res.status(500).json({ error: true, message: err.message });
+      }
+      console.log(result);
+      return res.status(200).json({ error: false, message: 'Users', results });
     });
-    console.log(result);
-    return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
