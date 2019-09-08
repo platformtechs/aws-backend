@@ -124,6 +124,7 @@ export const createSubAdmin = async (req, res) => {
       createdby,
       usertype: 'SUBADMIN',
     });
+    console.log('subadmin created: ', newUser.createdAt);
     try {
       const data = await newUser.save();
       const signupToken = jwt.sign(
@@ -141,9 +142,14 @@ export const createSubAdmin = async (req, res) => {
         _id: data._id,
         username,
         mobile,
+        createdAt: newUser.createdAt,
         usertype: data.usertype,
       };
-      return res.status(200).json({ error: false, user: response, token: signupToken });
+      return res.status(200).json({
+        error: false,
+        user: response,
+        token: signupToken,
+      });
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
     }
@@ -341,7 +347,7 @@ export const createAdmin = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       error: true,
-      message: e.message,
+      message: error.message,
     });
   }
 };
@@ -402,7 +408,7 @@ export const deleteUser = async (req, res) => {
   try {
     const { _id, createdby } = req.body;
     const result = await User.deleteOne({ _id });
-    const user = await User.findById({ createdby });
+    const user = await User.findOne({ createdby });
     return res.status(200).json({ error: false, message: `User deleted by ${user.username}`, result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });

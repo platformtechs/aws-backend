@@ -26,6 +26,7 @@ const UserSchema = new Schema(
     panelpass: String,
     instancepass: String,
     expiredat: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now },
     instancestatus: String,
     isactivated: {
       type: String,
