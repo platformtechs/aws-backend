@@ -1,3 +1,4 @@
+/* eslint-disable keyword-spacing */
 /* eslint-disable space-before-blocks */
 /* eslint-disable no-console */
 
@@ -52,12 +53,12 @@ export const createAccesskey = async (req, res) => {
   console.log('create');
   console.log(req.body);
 
-  let oldUser = await User.findOne({username})
+  const oldUser = await User.findOne({ username });
   if (oldUser) {
     return res.status(500).json({
       error: true,
-      message: "user already exist"
-    })
+      message: 'user already exist',
+    });
   }
   // const password = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
   // console.log(password);
@@ -95,16 +96,15 @@ export const createAccesskey = async (req, res) => {
 };
 
 export const createSubAdmin = async (req, res) => {
-  const { username, email, password, createdby } = req.body;
+  const { username, mobile, plan, password, createdby } = req.body;
   console.log('create');
   console.log(req.body);
-  
-  let oldUser = await User.findOne({username})
+  const oldUser = await User.findOne({ username });
   if (oldUser) {
     return res.status(500).json({
       error: true,
-      message: "user already exist"
-    })
+      message: 'user already exist',
+    });
   }
 
   bcrypt.hash(password, 10, async (err, hash) => {
@@ -117,8 +117,9 @@ export const createSubAdmin = async (req, res) => {
     const newUser = new User({
       _id: new mongoose.Types.ObjectId(),
       username,
-      email,
-      panelpass:password,
+      mobile,
+      panelpass: password,
+      plan,
       password: hash,
       createdby,
       usertype: 'SUBADMIN',
@@ -136,12 +137,12 @@ export const createSubAdmin = async (req, res) => {
         }
       );
 
-      let response = {
-        _id:data._id,
+      const response = {
+        _id: data._id,
         username,
-        email,
-        usertype:data.usertype,
-      }
+        mobile,
+        usertype: data.usertype,
+      };
       return res.status(200).json({ error: false, user: response, token: signupToken });
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
@@ -183,7 +184,7 @@ export const login = async (req, res) => {
             expiresIn: '30d',
           }
         );
-        
+
         const { email, usertype, _id } = user;
 
         const response = {
@@ -216,14 +217,14 @@ export const login = async (req, res) => {
 };
 
 export const changePass = async (req, res) => {
-  const {oldPassword, password, _id} = req.body;
+  const { oldPassword, password, _id } = req.body;
   try {
     const userId = mongoose.Types.ObjectId(_id);
-    const user = await User.findById(userId)
-    console.log("user", user);
-    bcrypt.compare(oldPassword, user.password, (err, result)=>{
-      if(err){
-        console.log("err", err)
+    const user = await User.findById(userId);
+    console.log('user', user);
+    bcrypt.compare(oldPassword, user.password, (err, result) => {
+      if (err){
+        console.log('err', err);
         return res.status(401).json({
           error: true,
           message: 'Auth failed',
@@ -241,19 +242,19 @@ export const changePass = async (req, res) => {
         try {
           if (err) {
             return res.status(401).json({
-            error: true,
-            message: 'Auth failed',
-          })
-        }
-          let data = {password:hash}
-          let {result} = await User.updateUser(userId, data);
+              error: true,
+              message: 'Auth failed',
+            });
+          }
+          const data = { password: hash };
+          const { result } = await User.updateUser(userId, data);
           const loginToken = jwt.sign({
-              username: user.username,
-              userId: user._id,
-            },
-            process.env.JWT_KEY, {
-              expiresIn: '30d',
-            }
+            username: user.username,
+            userId: user._id,
+          },
+          process.env.JWT_KEY, {
+            expiresIn: '30d',
+          }
           );
           return res.status(200).json({
             error: false,
@@ -264,10 +265,10 @@ export const changePass = async (req, res) => {
           return res.status(401).json({
             error: true,
             message: 'Auth failed',
-          })
+          });
         }
-      })
-    })
+      });
+    });
   } catch (error) {
     console.log('err', error);
     return res.status(401).json({
@@ -275,72 +276,72 @@ export const changePass = async (req, res) => {
       message: 'error',
     });
   }
-}
+};
 
 export const createAdmin = async (req, res) => {
   try {
-  const { username, email, password } = req.body;
-  console.log('create');
-  console.log(req.body);
-  let oldUser = await User.findOne({username})
-  if (oldUser) {
-    return res.status(500).json({
-      error: true,
-      message: "user already exist"
-    })
-  }
-
-  bcrypt.hash(password, 10, async (err, hash) => {
-    if (err) {
+    const { username, email, password } = req.body;
+    console.log('create');
+    console.log(req.body);
+    const oldUser = await User.findOne({ username });
+    if (oldUser) {
       return res.status(500).json({
         error: true,
-        message: err,
+        message: 'user already exist',
       });
     }
 
-    const newUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      username,
-      email,
-      password: hash,
-      usertype: 'ADMIN',
-    });
-    try {
-      const data = await newUser.save();
-      const signupToken = jwt.sign({
+    bcrypt.hash(password, 10, async (err, hash) => {
+      if (err) {
+        return res.status(500).json({
+          error: true,
+          message: err,
+        });
+      }
+
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId(),
+        username,
+        email,
+        password: hash,
+        usertype: 'ADMIN',
+      });
+      try {
+        const data = await newUser.save();
+        const signupToken = jwt.sign({
           username: data.username,
           userId: data._id,
         },
         process.env.JWT_KEY, {
           expiresIn: '30d',
         }
-      );
-      const {
-        _id,
-        usertype
-      } = data;
-      const response = {
-        _id,
-        username,
-        email,
-        usertype,
-      };
-      return res.status(200).json({
-        error: false,
-        user: response,
-        token: signupToken
-      });
-    } catch (e) {
-      return res.status(500).json({
-        error: true,
-        message: e.message
-      });
-    }
-  });
+        );
+        const {
+          _id,
+          usertype,
+        } = data;
+        const response = {
+          _id,
+          username,
+          email,
+          usertype,
+        };
+        return res.status(200).json({
+          error: false,
+          user: response,
+          token: signupToken,
+        });
+      } catch (e) {
+        return res.status(500).json({
+          error: true,
+          message: e.message,
+        });
+      }
+    });
   } catch (error) {
     return res.status(500).json({
       error: true,
-      message: e.message
+      message: e.message,
     });
   }
 };
@@ -379,29 +380,30 @@ export const modifyUser = async (req, res) => {
 
 export const renewUser = async (req, res) => {
   try {
-    console.log("renew")
-    const {_id, days} = req.body
+    console.log('renew');
+    const { _id, days } = req.body;
     const userId = mongoose.Types.ObjectId(_id);
     const user = await User.findById(userId);
-    console.log("user", user)
-    let dateObj = new Date()
-    let dateDB = new Date(user.expiredat)
-    dateObj.setDate(dateDB.getDate() + Number(days))
-    let dateData = dateObj.toLocaleDateString()
-    console.log("expiredAt", dateData)
-    let data = {expiredat:dateData}
-    let {result} = await User.updateUser(userId, data);
+    console.log('user', user);
+    const dateObj = new Date();
+    const dateDB = new Date(user.expiredat);
+    dateObj.setDate(dateDB.getDate() + Number(days));
+    const dateData = dateObj.toLocaleDateString();
+    console.log('expiredAt', dateData);
+    const data = { expiredat: dateData };
+    const { result } = await User.updateUser(userId, data);
     return res.status(201).json({ error: false, message: 'user updated' });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
-}
+};
 
 export const deleteUser = async (req, res) => {
   try {
-    const { username } = req.body;
-    const result = await User.deleteOne({ username });
-    return res.status(200).json({ error: false, message: 'User deleted', result });
+    const { _id, createdby } = req.body;
+    const result = await User.deleteOne({ _id });
+    const user = await User.findById({ createdby });
+    return res.status(200).json({ error: false, message: `User deleted by ${user.username}`, result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
@@ -409,13 +411,28 @@ export const deleteUser = async (req, res) => {
 
 export const getUser = async (req, res) => {
   try {
-    const userId = mongoose.Types.ObjectId(req.body._id)
-    return res.status(201).json({ error: false, user: await User.findById(userId)});
+    const userId = mongoose.Types.ObjectId(req.body._id);
+    return res.status(201).json({ error: false, user: await User.findById(userId) });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }
 };
 
+// export const isActivate = async (req, res) => {
+//   try {
+//     const { _id } = req.body;
+//     const user = await User.findById({ _id });
+//     console.log(user);
+//     if (user.isactivated){
+//       return res.status(200).json({ error: false, message: 'Users', user });
+//     }
+//     else{
+
+//     }
+//   } catch (e) {
+//     return res.status(500).json({ error: true, message: e.message });
+//   }
+// };
 // export const getAllUser = async (req, res) => {
 //   try {
 //     return res.status(200).json({ allUser: await User.find() });
@@ -432,6 +449,7 @@ export const listUser = async (req, res) => {
         { createdby: _id }, { usertype },
       ],
     });
+    console.log(result);
     return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });

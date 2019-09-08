@@ -7,11 +7,14 @@ const UserSchema = new Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
     password: String,
+    oldPassword: String,
     username: String,
     usertype: String,
     createdby: String,
     awsadminid: String,
     address: String,
+    mobile: String,
+    plan: String,
     email: String,
     accessid: String,
     accesskey: String,
@@ -19,24 +22,24 @@ const UserSchema = new Schema(
     instanceid: String,
     instancetype: String,
     instancekey: String,
-    instanceip:String,
+    instanceip: String,
     panelpass: String,
-    instancepass:String,
-    expiredat:Date,
-    instancestatus:String,
-    isdeactivated: {
-      type:String,
-      default:false
+    instancepass: String,
+    expiredat: { type: Date, default: Date.now },
+    instancestatus: String,
+    isactivated: {
+      type: String,
+      default: true,
     },
     issuspended: Boolean,
   },
   { timestamps: true }
 );
 
-function getdates (){
-  let dateObj = new Date();
-  let date = dateObj.getDate()
-  return date
+function getdates() {
+  const dateObj = new Date();
+  const date = dateObj.getDate();
+  return date;
 }
 
 UserSchema.statics.updateUser = async (id, args) => {
