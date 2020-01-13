@@ -99,6 +99,7 @@ export const createSubAdmin = async (req, res) => {
   const { username, mobile, plan, password, createdby } = req.body;
   console.log('create');
   console.log(req.body);
+  try{
   const oldUser = await User.findOne({ username });
   if (oldUser) {
     return res.status(500).json({
@@ -106,7 +107,12 @@ export const createSubAdmin = async (req, res) => {
       message: 'user already exist',
     });
   }
-
+  } catch(err){
+    return res.status(500).json({
+      error: true,
+      message: err,
+    });
+  }
   bcrypt.hash(password, 10, async (err, hash) => {
     if (err) {
       return res.status(500).json({
@@ -114,18 +120,22 @@ export const createSubAdmin = async (req, res) => {
         message: err,
       });
     }
-    const newUser = new User({
-      _id: new mongoose.Types.ObjectId(),
-      username,
-      mobile,
-      panelpass: password,
-      plan,
-      password: hash,
-      createdby,
-      usertype: 'SUBADMIN',
-    });
-    console.log('subadmin created: ', newUser.createdAt);
     try {
+      const dateObj = new Date();
+      const dateDB = new Date();
+      dateObj.setDate(dateDB.getDate() + Number(plan));
+      const dateData = dateObj.toLocaleDateString();
+      const newUser = new User({
+        _id: new mongoose.Types.ObjectId(),
+        username,
+        mobile,
+        panelpass: password,
+        plan,
+        password: hash,
+        createdby,
+        usertype: 'SUBADMIN',
+        expiredat: dateData
+      });
       const data = await newUser.save();
       const signupToken = jwt.sign(
         {
@@ -153,7 +163,7 @@ export const createSubAdmin = async (req, res) => {
     } catch (e) {
       return res.status(500).json({ error: true, message: e.message });
     }
-  });
+  })
 };
 
 export const login = async (req, res) => {
@@ -354,11 +364,8 @@ export const createAdmin = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { UserName } = req.query;
     let data = {};
-    console.log('UserName', UserName);
     data = req.body;
-    console.log('query', req.query);
     const userId = mongoose.Types.ObjectId(req.params.id);
     console.log('id', userId);
     await User.updateUser(userId, data);
@@ -427,9 +434,9 @@ export const getUser = async (req, res) => {
 export const isActivate = async (req, res) => {
   try {
     const { _id } = req.body;
-    const user = await User.findById({ _id });
+    const user = await User.findByIdAndUpdate({ _id });
     console.log(user);
-    if (user.isactivated){
+    if (user.isactive){
       return res.status(200).json({ error: false, message: 'Users', isactivated: true });
     }
     return res.status(200).json({ error: false, message: 'Users', isactivated: false });
@@ -453,13 +460,15 @@ export const listUser = async (req, res) => {
       $and: [
         { createdby }, { usertype },
       ],
-    }).toArray((err, results) => {
+    })/* .toArray((err, results) => {
       if(err){
         return res.status(500).json({ error: true, message: err.message });
       }
       console.log(result);
       return res.status(200).json({ error: false, message: 'Users', results });
-    });
+    }) */;
+    console.log("res", result)
+    return res.status(200).json({ error: false, message: 'Users', result });
   } catch (e) {
     return res.status(500).json({ error: true, message: e.message });
   }

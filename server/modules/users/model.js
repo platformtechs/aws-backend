@@ -25,11 +25,11 @@ const UserSchema = new Schema(
     instanceip: String,
     panelpass: String,
     instancepass: String,
-    expiredat: { type: Date, default: Date.now },
-    createdAt: { type: Date, default: Date.now },
+    expiredat: Date,
     instancestatus: String,
-    isactivated: {
-      type: String,
+    messages:Array,
+    isactive: {
+      type: Boolean,
       default: true,
     },
     issuspended: Boolean,
